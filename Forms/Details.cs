@@ -42,11 +42,14 @@ namespace WinFormsApp1.Forms
                     Location = new Point(150, y),
                     Width = 400,
                     Text = prop.GetValue(_entity)?.ToString(),
-                    ReadOnly = enable
+                    ReadOnly = enable,
+                    Name = prop.Name
+                    
                 };
                 textBox.Tag = prop; // Сохраняем свойство в теге для дальнейшего использования
                 this.Controls.Add(textBox);
-
+                
+                
                 y += 30; // Увеличиваем координату y для следующего элемента
             }
         }

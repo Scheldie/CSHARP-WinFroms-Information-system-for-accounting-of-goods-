@@ -182,6 +182,7 @@
             button5.TabIndex = 22;
             button5.Text = "View Details";
             button5.UseVisualStyleBackColor = false;
+            button5.Click += button5_Click;
             // 
             // groupBox1
             // 
@@ -318,6 +319,11 @@
         {
             this.Owner.Show();
             this.Hide(); // Закрыть первую форму
+
+        }
+        private void button5_Click(Object sender, EventArgs e)
+        {
+            ViewDetails();
 
         }
         private void button3_Click(Object sender, EventArgs e)

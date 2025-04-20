@@ -8,11 +8,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using WinFormsApp1.Models;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace WinFormsApp1.Forms
 {
-    public partial class UsersForm : Form
+    public partial class UsersForm : Form, ISaveChanges
     {
         public UsersForm()
         {
@@ -87,7 +88,29 @@ namespace WinFormsApp1.Forms
                 }
             }
         }
-        
+        private object? SelectedRow(string text)
+        {
+            return dataGridView1.SelectedRows[0].Cells[text].Value;
+        }
+        private void ViewDetails()
+        {
+            if (dataGridView1.SelectedRows.Count > 0)
+            {
+
+                User user = new User(Guid.Parse(SelectedRow("user_id").ToString()),
+                    SelectedRow("first_name").ToString(), SelectedRow("last_name").ToString(),
+                    Convert.ToBoolean(SelectedRow("is_superuser")), Convert.ToBoolean(SelectedRow("is_staff")),
+                    Convert.ToBoolean(SelectedRow("is_active")), Convert.ToDateTime(SelectedRow("last_signed_at")),
+                    Convert.ToDateTime(SelectedRow("registered_at")), SelectedRow("phone_number").ToString()
+                    );
+                Details form = new Details(user, this);
+
+                form.Owner = this;
+                form.Show();
+            }
+
+        }
+
 
         private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {

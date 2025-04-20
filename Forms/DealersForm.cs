@@ -8,11 +8,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using WinFormsApp1.Models;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace WinFormsApp1.Forms
 {
-    public partial class DealersForm : Form
+    public partial class DealersForm : Form, ISaveChanges
     {
         public DealersForm()
         {
@@ -125,6 +126,25 @@ namespace WinFormsApp1.Forms
                 }
             }
             LoadData();
+        }
+        private object? SelectedRow(string text)
+        {
+            return dataGridView1.SelectedRows[0].Cells[text].Value;
+        }
+        private void ViewDetails()
+        {
+            if (dataGridView1.SelectedRows.Count > 0)
+            {
+
+                Dealer user = new Dealer(Guid.Parse(SelectedRow("dealer_id").ToString()),
+                    SelectedRow("dealer_name").ToString(), SelectedRow("url").ToString(),
+                    (float)Convert.ToDouble(SelectedRow("rate")));
+                Details form = new Details(user, this);
+
+                form.Owner = this;
+                form.Show();
+            }
+
         }
     }
 }

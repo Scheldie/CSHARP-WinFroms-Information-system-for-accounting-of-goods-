@@ -18,14 +18,14 @@ namespace WinFormsApp1.Models
         public bool is_active { get; set; }
         public DateTime last_signed_at { get; set; }
         public DateTime registered_at { get; set; }
-        public string phoneNumber { get; set; }
-        public string hashPassword { get; set; }
+        [Alias("phone_number")]
+        public string name { get; set; }
 
         public User(Guid id, string firstName,
             string lastName, bool is_superuser,
             bool is_staff, bool is_active,
             DateTime last_signed_at, DateTime registered_at,
-            string phoneNumber, string hashPassword)
+            string phoneNumber)
         {
             this.id = id;
             this.firstName = firstName;
@@ -35,8 +35,8 @@ namespace WinFormsApp1.Models
             this.is_active = is_active;
             this.last_signed_at = last_signed_at;
             this.registered_at = registered_at;
-            this.phoneNumber = phoneNumber;
-            this.hashPassword = hashPassword;
+            this.name = phoneNumber;
+            
 
         }
     }

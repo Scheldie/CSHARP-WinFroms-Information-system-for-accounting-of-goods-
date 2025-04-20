@@ -221,6 +221,7 @@
             button5.TabIndex = 22;
             button5.Text = "View Details";
             button5.UseVisualStyleBackColor = false;
+            button5.Click += button5_Click;
             // 
             // groupBox1
             // 
@@ -287,6 +288,10 @@
         {
             AddDealer();
 
+        }
+        private void button5_Click(Object sender, EventArgs e)
+        {
+            ViewDetails();
         }
 
         private TextBox textBox1;

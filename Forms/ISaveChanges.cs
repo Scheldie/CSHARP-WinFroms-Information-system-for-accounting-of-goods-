@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WinFormsApp1.Entities;
 
 namespace WinFormsApp1.Forms
 {
-    public interface ISaveChanges
+    public partial interface ISaveChanges
     {
-        internal void SaveChanges() { }
+        public void SaveChanges(IEntity entity) { }
     }
+    
 }

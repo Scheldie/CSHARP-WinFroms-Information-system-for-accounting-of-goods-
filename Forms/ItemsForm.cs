@@ -1,20 +1,24 @@
-﻿using Npgsql;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.VisualBasic.ApplicationServices;
+using Npgsql;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using WinFormsApp1.Entities;
 using WinFormsApp1.Models;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 using static System.ComponentModel.Design.ObjectSelectorEditor;
 
 namespace WinFormsApp1.Forms
 {
-    public partial class ItemsForm : Form, ISaveChanges
+    public partial class ItemsForm : Form, ISaveChanges 
     {
         public ItemsForm()
         {
@@ -28,10 +32,16 @@ namespace WinFormsApp1.Forms
             LoadData();
             List<string> items = new List<string>
             {
-                "",
-                "Price",
-                "Quantity"
+                ""
             };
+            Item item = new Item(Guid.NewGuid(), "zero", 0.0f, 0, 0.0f, "undefined");
+            foreach (var prop in item.GetType().GetProperties())
+            {
+                if (prop.GetCustomAttributes().Any(x => x.GetType().Name == "FilterableAttribute"))
+                {
+                    items.Add(prop.GetCustomAttribute<AliasAttribute>().Alias);
+                }
+            }
             comboBox2.DataSource = items;
 
         }
@@ -45,8 +55,61 @@ namespace WinFormsApp1.Forms
                 groupBox2.Location = new System.Drawing.Point(groupBox2.Location.X, Convert.ToInt32(this.ClientSize.Height * 0.8));
             }
         }
-        private void SaveChanges()
+        public void SaveChanges(IEntity entity)
         {
+            save_changes(entity);
+        }
+        private void save_changes(IEntity entity)
+        {
+            string updateQuery = "";
+            if (entity.id != Guid.Empty)
+            {
+                var propertyCount = entity.GetType().GetProperties().Count();
+                var tableName = (entity.GetType().GetCustomAttributes()
+                    ?.Where(x => x.GetType().Name == "AliasAttribute")
+                    ?.FirstOrDefault() as AliasAttribute)?.Alias;
+                var counter = 0;
+                updateQuery = $"UPDATE {tableName} SET ";
+                foreach (var prop in entity.GetType().GetProperties())
+                {
+                   
+                    if (!prop.GetCustomAttributes().Any(
+                        x => x.GetType().Name == "NonChangeAttribute") && counter < propertyCount - 2)
+                    {
+                        updateQuery += String.Format("{0} = '{1}',",
+                            prop.GetCustomAttribute<AliasAttribute>()?.Alias,
+                            prop.GetValue(entity));
+                    }
+                    else if (!prop.GetCustomAttributes().Any(
+                        x => x.GetType().Name == "NonChangeAttribute") && counter == propertyCount - 2)
+                    {
+                        updateQuery += String.Format("{0} = '{1}'",
+                            prop.GetCustomAttribute<AliasAttribute>()?.Alias,
+                            prop.GetValue(entity));
+                    }
+                    counter++;
+
+                }
+                updateQuery += " WHERE " + entity.GetType()
+                     .GetProperties().Where(x => x.Name == "id")?.FirstOrDefault()?
+                .GetCustomAttribute<AliasAttribute>()?.Alias
+                     + String.Format(" = '{0}'", entity.id.ToString());
+                Console.WriteLine(updateQuery);
+            }
+            
+            if (updateQuery != "")
+            {
+
+                using (var conn = new NpgsqlConnection(DataBaseConnection.ConnectionString))
+                using (var command = new NpgsqlCommand(updateQuery, conn))
+                {
+                    
+                    conn.Open();
+                    command.ExecuteNonQuery();
+                    conn.Close();
+                }
+            }
+            LoadData();
 
         }
         private object? SelectedRow(string text)
@@ -57,49 +120,53 @@ namespace WinFormsApp1.Forms
 
         private void ViewDetails()
         {
-            string query = String.Format
-                ("SELECT dealer_name FROM dealer WHERE dealer_id = '{0}'", 
-                SelectedRow("dealer_id"));
-            string dealer_name = "";
-            using (var conn = new NpgsqlConnection(DataBaseConnection.ConnectionString))
+            if (dataGridView1.SelectedRows.Count > 0)
             {
-                conn.Open();
-                var command = new NpgsqlCommand(query, conn);
 
-                try
+                string query = String.Format
+                    ("SELECT dealer_name FROM dealer WHERE dealer_id = '{0}'",
+                    SelectedRow("dealer_id"));
+                string dealer_name = "";
+                using (var conn = new NpgsqlConnection(DataBaseConnection.ConnectionString))
                 {
-                    using (var cmd = new NpgsqlCommand(String.Format
-                        ("SELECT dealer_name FROM dealer WHERE dealer_id = '{0}'",
-                        SelectedRow("dealer_id")), conn))
-                    { 
-                        cmd.Parameters.AddWithValue("dealer_id", SelectedRow("dealer_id"));
-                        using (var reader = command.ExecuteReader())
+                    conn.Open();
+                    var command = new NpgsqlCommand(query, conn);
+
+                    try
+                    {
+                        using (var cmd = new NpgsqlCommand(String.Format
+                            ("SELECT dealer_name FROM dealer WHERE dealer_id = '{0}'",
+                            SelectedRow("dealer_id")), conn))
                         {
-                            while (reader.Read())
+                            cmd.Parameters.AddWithValue("dealer_id", SelectedRow("dealer_id"));
+                            using (var reader = command.ExecuteReader())
                             {
-                                // Обрабатываем результаты запроса
-                                dealer_name = reader["dealer_name"].ToString();
+                                while (reader.Read())
+                                {
+                                    // Обрабатываем результаты запроса
+                                    dealer_name = reader["dealer_name"].ToString();
+                                }
                             }
                         }
+
+                        // Создаем DataTable для хранения данных
+
                     }
-
-                    // Создаем DataTable для хранения данных
-
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Ошибка: " + ex.Message);
+                    }
                 }
-                catch (Exception ex)
-                {
-                    MessageBox.Show("Ошибка: " + ex.Message);
-                }
+                //item_name, dealer_id, cost, count, rate, category
+                Item item = new Item(Guid.Parse(SelectedRow("item_id").ToString()),
+                    SelectedRow("item_name").ToString(),
+                    (float)Convert.ToInt32(SelectedRow("cost")), Convert.ToInt32(SelectedRow("count")),
+                (float)Convert.ToInt32(SelectedRow("rate")), dealer_name);
+                Details form = new Details(item, this);
+                
+                form.Owner = this;
+                form.Show();
             }
-            //item_name, dealer_id, cost, count, rate, category
-            Item item = new Item(Guid.Parse(SelectedRow("item_id").ToString()), 
-                SelectedRow("item_name").ToString(),
-                (float)Convert.ToInt32(SelectedRow("cost")), Convert.ToInt32(SelectedRow("count")),
-            (float)Convert.ToInt32(SelectedRow("rate")), dealer_name);
-            Details form = new Details(item, this);
-            this.Hide();
-            form.Owner = this;
-            form.Show();
 
         }
 
@@ -263,7 +330,8 @@ namespace WinFormsApp1.Forms
             string price = textBox5.Text;
             string Quantity = textBox6.Text;
             float rate = 0.00f;
-            string dealer = "2490e9c6-4b4e-4ec1-a1d0-77743a62dce3";
+            string dealer = "208bafa0-27ab-4b55-9892-df0ab71f55a5";
+            
 
             // Создаем соединение с базой данных
             using (var conn = new NpgsqlConnection(DataBaseConnection.ConnectionString))

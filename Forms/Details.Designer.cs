@@ -1,4 +1,5 @@
-﻿using System.Xml.Linq;
+﻿using System.Reflection;
+using System.Xml.Linq;
 using WinFormsApp1.Entities;
 
 namespace WinFormsApp1.Forms
@@ -44,6 +45,7 @@ namespace WinFormsApp1.Forms
             button1.TabIndex = 0;
             button1.Text = "Save Changes";
             button1.UseVisualStyleBackColor = true;
+            button1.Click += button1_Click;
 
             // 
             // Details
@@ -57,12 +59,36 @@ namespace WinFormsApp1.Forms
             Load += Details_Load;
             ResumeLayout(false);
         }
-        private void button1_Click()
-        {
-            form1.SaveChanges();
-        }
 
         #endregion
+        private void button1_Click(Object sender, EventArgs e)
+        {
+            
+            foreach (var control in this.Controls)
+            {
+                string updatedData;
+                if (control.GetType() == typeof(TextBox))
+                {
+                    updatedData = (control as TextBox).Text;
+                    if (_entity.GetType().GetProperty((control as TextBox).Name)
+                        .PropertyType == typeof(Guid))
+                    {
+                        _entity.GetType().GetProperty((control as TextBox).Name)
+                        .SetValue(_entity, Guid.Parse(updatedData));
+                    }
+                    else
+                    {
+                        _entity.GetType().GetProperty((control as TextBox).Name)
+                            .SetValue(_entity, Convert.ChangeType(
+                                updatedData, _entity.GetType().GetProperty(
+                                    (control as TextBox).Name).PropertyType));
+                    }
+                }
+                
+            }
+            form1.SaveChanges(_entity);
+            this.Close();
+        }
 
         private Button button1;
     }

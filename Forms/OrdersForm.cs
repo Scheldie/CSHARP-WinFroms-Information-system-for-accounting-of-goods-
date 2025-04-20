@@ -8,11 +8,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using WinFormsApp1.Models;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace WinFormsApp1.Forms
 {
-    public partial class OrdersForm : Form
+    public partial class OrdersForm : Form, ISaveChanges
     {
         public OrdersForm()
         {
@@ -136,6 +137,25 @@ namespace WinFormsApp1.Forms
                 }
             }
             LoadData();
+        }
+        private object? SelectedRow(string text)
+        {
+            return dataGridView1.SelectedRows[0].Cells[text].Value;
+        }
+        private void ViewDetails()
+        {
+            if (dataGridView1.SelectedRows.Count > 0)
+            {
+
+                Order order = new Order(Guid.Parse(SelectedRow("order_id").ToString()), 
+                    SelectedRow("user_id").ToString(), (float)Convert.ToDouble(SelectedRow("final_cost")), Convert.ToInt32(SelectedRow("count")),
+                SelectedRow("final_place").ToString());
+                Details form = new Details(order, this);
+
+                form.Owner = this;
+                form.Show();
+            }
+
         }
     }
 }
