@@ -27,6 +27,7 @@ namespace WinFormsApp1.Forms
             LoadData();
 
         }
+
         private void Form_SizeChanged(object sender, EventArgs e)
         {
             // Проверяем, если высота формы увеличилась

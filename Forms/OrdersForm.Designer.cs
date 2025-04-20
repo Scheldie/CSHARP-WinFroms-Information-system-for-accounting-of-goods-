@@ -80,6 +80,7 @@
             button1.TabIndex = 2;
             button1.Text = "Search";
             button1.UseVisualStyleBackColor = false;
+            button1.Click += new System.EventHandler(button1_Click);
             // 
             // textBox2
             // 
@@ -172,6 +173,7 @@
             button4.TabIndex = 21;
             button4.Text = "Delete";
             button4.UseVisualStyleBackColor = false;
+            button4.Click += button4_Click;
             // 
             // button5
             // 
@@ -329,8 +331,18 @@
         private void button3_Click(Object sender, EventArgs e)
         {
             AddOrder();
+        }
+        private void button4_Click(Object sender, EventArgs e)
+        {
+            DeleteOrder();
 
         }
+        private void button1_Click(Object sender, EventArgs e)
+        {
+            LoadFiltredData();
+
+        }
+        
 
         private TextBox textBox1;
         private Label label1;

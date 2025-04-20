@@ -5,9 +5,12 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using WinFormsApp1.docker;
+using WinFormsApp1.Entities;
 using WinFormsApp1.Models;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
@@ -25,6 +28,19 @@ namespace WinFormsApp1.Forms
         private void OrdersForm_Load(object sender, EventArgs e)
         {
             LoadData();
+            List<string> items = new List<string>
+            {
+                ""
+            };
+            Order order = new Order();
+            foreach (var prop in order.GetType().GetProperties())
+            {
+                if (prop.GetCustomAttributes().Any(x => x.GetType().Name == "FilterableAttribute"))
+                {
+                    items.Add(prop.GetCustomAttribute<AliasAttribute>().Alias);
+                }
+            }
+            comboBox2.DataSource = items;
 
         }
         private void Form_SizeChanged(object sender, EventArgs e)
@@ -39,54 +55,27 @@ namespace WinFormsApp1.Forms
         }
         private void LoadData()
         {
-            // Строка подключения к вашей базе данных
-
-
-            // SQL-запрос для выборки данных
-            string query = "SELECT * FROM orders";
-
-            // Создаем соединение с базой данных
-            using (var conn = new NpgsqlConnection(DataBaseConnection.ConnectionString))
-            {
-                // Создаем команду для выполнения SQL-запроса
-                conn.Open();
-                var command = new NpgsqlCommand(query, conn);
-
-                try
-                {
-                    // Открываем соединение
-                    using (var cmd = new NpgsqlCommand("SELECT * FROM orders", conn))
-                    using (var reader = command.ExecuteReader())
-                    {
-                        DataTable dataTable = new DataTable();
-                        dataTable.Load(reader);
-
-                        // Добавляем новую колонку для номера записи
-                        DataColumn indexColumn = new DataColumn("Index", typeof(int));
-                        dataTable.Columns.Add(indexColumn);
-
-                        // Заполняем колонку индексами
-                        int index = 1;
-                        foreach (DataRow row in dataTable.Rows)
-                        {
-                            row["Index"] = index++;
-                        }
-
-                        // Привязываем данные к DataGridView
-                        dataGridView1.DataSource = dataTable;
-
-                        // Перемещаем колонку индекса на самое левое место
-                        dataGridView1.Columns["Index"].DisplayIndex = 0;
-                    }
-
-                    // Создаем DataTable для хранения данных
-
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show("Ошибка: " + ex.Message);
-                }
-            }
+            DataBaseQueries dbQuery = new DataBaseQueries(this, this, new Order(), dataGridView1);
+            dbQuery.LoadData();
+        }
+        private void LoadFiltredData()
+        {
+            DataBaseQueries dbQuery = new DataBaseQueries(this, this, new Order(), dataGridView1);
+            dbQuery.LoadFiltredData(comboBox2, textBox1, textBox2, textBox3);
+        }
+        private void DeleteOrder()
+        {
+            DataBaseQueries dbQuery = new DataBaseQueries(this, this, new Order(), dataGridView1);
+            dbQuery.DeleteItem();
+        }
+        public void SaveChanges(IEntity entity)
+        {
+            save_changes(entity);
+        }
+        private void save_changes(IEntity entity)
+        {
+            DataBaseQueries bdQuery = new DataBaseQueries(this, this, entity, this.dataGridView1);
+            bdQuery.SaveChange();
 
         }
         private void AddOrder()

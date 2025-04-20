@@ -8,7 +8,7 @@ namespace WinFormsApp1.Entities
 {
     public partial interface IEntity
     {
-        
+        [NonChange]
         public Guid id { get; set; }
         public string name { get; set; }
         string GetEntityName();

@@ -50,6 +50,7 @@ namespace WinFormsApp1.docker
                      .GetProperties().Where(x => x.Name == "name")?.FirstOrDefault()?
                 .GetCustomAttribute<AliasAttribute>()?.Alias;
 
+        //UPDATE
         private void SaveChanges(IEntity entity)
         {
             string updateQuery = "";
@@ -60,8 +61,12 @@ namespace WinFormsApp1.docker
                 updateQuery = $"UPDATE {TableName} SET ";
                 foreach (var prop in entity.GetType().GetProperties())
                 {
-
                     if (!prop.GetCustomAttributes().Any(
+                    x => x.GetType().Name == "NonChangeAttribute") && (
+                    prop.PropertyType == typeof(float) || prop.PropertyType == typeof(double))) 
+                        updateQuery += String.Format("{0} = '{1}',",
+                            prop.GetCustomAttribute<AliasAttribute>()?.Alias, prop.GetValue(entity).ToString().Replace(",","."));
+                    else if (!prop.GetCustomAttributes().Any(
                     x => x.GetType().Name == "NonChangeAttribute") && counter < propertyCount - 2)
                         updateQuery += String.Format("{0} = '{1}',",
                             prop.GetCustomAttribute<AliasAttribute>()?.Alias, prop.GetValue(entity));
@@ -72,14 +77,14 @@ namespace WinFormsApp1.docker
                     counter++;
 
                 }
+                if (updateQuery != "" && updateQuery != $"UPDATE {TableName} SET ")
                 updateQuery += " WHERE " + entity.GetType()
                      .GetProperties().Where(x => x.Name == "id")?.FirstOrDefault()?
                 .GetCustomAttribute<AliasAttribute>()?.Alias
                      + String.Format(" = '{0}'", entity.id.ToString());
-                Console.WriteLine(updateQuery);
             }
 
-            if (updateQuery != "")
+            if (updateQuery != "" && updateQuery != $"UPDATE {TableName} SET ")
             {
 
                 using (var conn = new NpgsqlConnection(DataBaseConnection.ConnectionString))
@@ -94,6 +99,7 @@ namespace WinFormsApp1.docker
             LoadData(dataGridView);
 
         }
+        //SELECT *
         private void LoadData(DataGridView dataGridView1)
         {
             string query = String.Format("SELECT * FROM {0}", TableName);
@@ -127,6 +133,7 @@ namespace WinFormsApp1.docker
                 }
             }
         }
+        //DELETE
         private void DeleteItem(DataGridView dataGridView1)
         {
 
@@ -147,6 +154,7 @@ namespace WinFormsApp1.docker
             }
             LoadData();
         }
+        //SELECT * WHERE (etc)
         private string FilterSubsQuery(string bottom, string top, string filter)
         {
 
@@ -157,27 +165,41 @@ namespace WinFormsApp1.docker
                 if (filter != "")
                 {
                     if (Double.TryParse(bottom, out double bottom1)
-                        && Double.TryParse(top, out double top1) && bottom1 < top1)
-                        subquery1 = String.Format(" AND {0} > ", filter)
-                            + bottom1 + String.Format("AND {0} < ", filter) + top1;
+                        && Double.TryParse(top, out double top1) && bottom1 - top1 < -1e-6)
+                        subquery1 = String.Format(" AND {0} >= ", filter)
+                            + bottom1 + String.Format(" AND {0} <= ", filter) + top1;
+                    else if (Double.TryParse(bottom, out bottom1)
+                        && Double.TryParse(top, out top1) && Math.Abs(bottom1 - top1) < 1e-6)
+                        subquery1 = String.Format(" AND {0} = ", filter)
+                            + bottom1;
                     else if (Double.TryParse(bottom, out bottom1) &&
                         !Double.TryParse(top, out top1))
-                        subquery1 = String.Format(" AND {0} > ", filter) + bottom1;
-                    else if (Double.TryParse(top, out top1))
-                        subquery1 = String.Format(" AND {0} < ", filter) + top1;
+                        subquery1 = String.Format(" AND {0} >= ", filter) + bottom1;
+                    else if (Double.TryParse(top, out top1) &&
+                        !Double.TryParse(bottom, out bottom1))
+                        subquery1 = String.Format(" AND {0} <= ", filter) + top1;
                 }
 
             }
             return subquery1;
         }
-
+        //SELECT * WHERE (main)
         private void LoadFiltredData(DataGridView dataGridView1,
             System.Windows.Forms.ComboBox comboBox2, System.Windows.Forms.TextBox textBox1,
             System.Windows.Forms.TextBox textBox2, System.Windows.Forms.TextBox textBox3)
         {
+            string query;
             string subquery1 = FilterSubsQuery(textBox2.Text, textBox3.Text, comboBox2.Text);
-            string query = String.Format("SELECT * FROM {0} WHERE {1} LIKE '%{2}%'",
+            if (TableObjectName == "order_id" && textBox1.Text != "") query = String.Format("SELECT * FROM {0} WHERE {1} = \"{2}\"",
                 TableName, TableObjectName, textBox1.Text) + subquery1;
+            else if (TableObjectName == "order_id" && textBox1.Text == "" && subquery1.Length > 4)
+                query = String.Format("SELECT * FROM {0} WHERE ",
+                TableName) + subquery1.Substring(4);
+            else if (TableObjectName == "order_id" && textBox1.Text == "" && subquery1 == "")
+                query = String.Format("SELECT * FROM {0}", TableName);
+            else
+                query = String.Format("SELECT * FROM {0} WHERE {1} LIKE '%{2}%'",
+                    TableName, TableObjectName, textBox1.Text) + subquery1;
             using (var conn = new NpgsqlConnection(DataBaseConnection.ConnectionString))
             {
                 conn.Open();

@@ -13,6 +13,7 @@ namespace WinFormsApp1.Models
     [Alias("item")]
     public partial class Item : IEntity
     {
+        public Item() { }
         public Item(Guid id, string name,
             float price, int quantity,
             float rate, string dealerName)

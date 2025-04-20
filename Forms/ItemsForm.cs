@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using WinFormsApp1.docker;
 using WinFormsApp1.Entities;
 using WinFormsApp1.Models;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
@@ -61,55 +62,8 @@ namespace WinFormsApp1.Forms
         }
         private void save_changes(IEntity entity)
         {
-            string updateQuery = "";
-            if (entity.id != Guid.Empty)
-            {
-                var propertyCount = entity.GetType().GetProperties().Count();
-                var tableName = (entity.GetType().GetCustomAttributes()
-                    ?.Where(x => x.GetType().Name == "AliasAttribute")
-                    ?.FirstOrDefault() as AliasAttribute)?.Alias;
-                var counter = 0;
-                updateQuery = $"UPDATE {tableName} SET ";
-                foreach (var prop in entity.GetType().GetProperties())
-                {
-                   
-                    if (!prop.GetCustomAttributes().Any(
-                        x => x.GetType().Name == "NonChangeAttribute") && counter < propertyCount - 2)
-                    {
-                        updateQuery += String.Format("{0} = '{1}',",
-                            prop.GetCustomAttribute<AliasAttribute>()?.Alias,
-                            prop.GetValue(entity));
-                    }
-                    else if (!prop.GetCustomAttributes().Any(
-                        x => x.GetType().Name == "NonChangeAttribute") && counter == propertyCount - 2)
-                    {
-                        updateQuery += String.Format("{0} = '{1}'",
-                            prop.GetCustomAttribute<AliasAttribute>()?.Alias,
-                            prop.GetValue(entity));
-                    }
-                    counter++;
-
-                }
-                updateQuery += " WHERE " + entity.GetType()
-                     .GetProperties().Where(x => x.Name == "id")?.FirstOrDefault()?
-                .GetCustomAttribute<AliasAttribute>()?.Alias
-                     + String.Format(" = '{0}'", entity.id.ToString());
-                Console.WriteLine(updateQuery);
-            }
-            
-            if (updateQuery != "")
-            {
-
-                using (var conn = new NpgsqlConnection(DataBaseConnection.ConnectionString))
-                using (var command = new NpgsqlCommand(updateQuery, conn))
-                {
-                    
-                    conn.Open();
-                    command.ExecuteNonQuery();
-                    conn.Close();
-                }
-            }
-            LoadData();
+            DataBaseQueries bdQuery = new DataBaseQueries(this, this, entity, this.dataGridView1);
+            bdQuery.SaveChange();
 
         }
         private object? SelectedRow(string text)
@@ -172,153 +126,18 @@ namespace WinFormsApp1.Forms
 
         private void LoadData()
         {
-            // Строка подключения к вашей базе данных
-
-
-            // SQL-запрос для выборки данных
-            string query = "SELECT * FROM item";
-
-            // Создаем соединение с базой данных
-            using (var conn = new NpgsqlConnection(DataBaseConnection.ConnectionString))
-            {
-                // Создаем команду для выполнения SQL-запроса
-                conn.Open();
-                var command = new NpgsqlCommand(query, conn);
-
-                try
-                {
-                    // Открываем соединение
-                    using (var cmd = new NpgsqlCommand("SELECT * FROM item", conn))
-                    using (var reader = command.ExecuteReader())
-                    {
-                        DataTable dataTable = new DataTable();
-                        dataTable.Load(reader);
-
-                        // Добавляем новую колонку для номера записи
-                        DataColumn indexColumn = new DataColumn("Index", typeof(int));
-                        dataTable.Columns.Add(indexColumn);
-
-                        // Заполняем колонку индексами
-                        int index = 1;
-                        foreach (DataRow row in dataTable.Rows)
-                        {
-                            row["Index"] = index++;
-                        }
-
-                        // Привязываем данные к DataGridView
-                        dataGridView1.DataSource = dataTable;
-
-                        // Перемещаем колонку индекса на самое левое место
-                        dataGridView1.Columns["Index"].DisplayIndex = 0;
-                    }
-
-                    // Создаем DataTable для хранения данных
-
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show("Ошибка: " + ex.Message);
-                }
-            }
+            DataBaseQueries bdQuery = new DataBaseQueries(this, this, new Item(), this.dataGridView1);
+            bdQuery.LoadData();
         }
         private void DeleteItem()
         {
-            if (dataGridView1.SelectedRows.Count > 0)
-            {
-                var selectedId = dataGridView1.SelectedRows[0].Cells["item_id"].Value;
-                using (var connection = new NpgsqlConnection(DataBaseConnection.ConnectionString))
-                {
-                    connection.Open();
-                    using (var command = new NpgsqlCommand(String.Format("DELETE FROM item WHERE item_id = '{0}'",selectedId), connection))
-                    {
-                        command.Parameters.AddWithValue("item_id", selectedId);
-                        command.ExecuteNonQuery();
-                    }
-                }
-                //int id, const std::string& name, double price, int quantity, double rating)
-            }
-            LoadData();
+            DataBaseQueries bdQuery = new DataBaseQueries(this, this, new Item(), this.dataGridView1);
+            bdQuery.DeleteItem();
         }
         private void LoadFiltredData()
         {
-            // Строка подключения к вашей базе данных
-            string subquery1 = "";
-            if (comboBox2.Text != "" && 
-                (textBox2.Text != "" || textBox3.Text != ""))
-            {
-                int bottom;
-                int top;
-                double bottom1;
-                double top1;
-                if (comboBox2.Text == "Price")
-                {
-                    if (Double.TryParse(textBox2.Text, out bottom1)
-                        && Double.TryParse(textBox3.Text, out top1) && bottom1 < top1)
-                        subquery1 = " AND cost > " + bottom1 + " AND cost < " + top1;
-                    else if (Double.TryParse(textBox2.Text, out bottom1) &&
-                        !Double.TryParse(textBox3.Text, out top1))
-                        subquery1 = " AND cost > " + bottom1;
-                    else if (Double.TryParse(textBox3.Text, out top1))
-                        subquery1 = " AND cost < " + top1;
-                }
-                else if (comboBox2.Text == "Quantity")
-                {
-                    if (Int32.TryParse(textBox2.Text, out bottom)
-                        && Int32.TryParse(textBox3.Text, out top) && bottom < top)
-                        subquery1 = " AND count > "+bottom+" AND count < "+top;
-                    else if (Int32.TryParse(textBox2.Text, out bottom) &&
-                        !Int32.TryParse(textBox3.Text, out top))
-                        subquery1 = " AND count > " + bottom;
-                    else if (Int32.TryParse(textBox3.Text, out top))
-                        subquery1 = " AND count < " + top;
-
-                }
-            }
-            // SQL-запрос для выборки данных
-            string query = String.Format("SELECT * FROM item WHERE item_name LIKE '%{0}%'", textBox1.Text) + subquery1;
-
-            // Создаем соединение с базой данных
-            using (var conn = new NpgsqlConnection(DataBaseConnection.ConnectionString))
-            {
-                // Создаем команду для выполнения SQL-запроса
-                conn.Open();
-                var command = new NpgsqlCommand(query, conn);
-
-                try
-                {
-                    // Открываем соединение
-                    using (var cmd = new NpgsqlCommand(String.Format("SELECT * FROM item WHERE item_name LIKE '%{0}%'", textBox1.Text) + subquery1, conn))
-                    using (var reader = command.ExecuteReader())
-                    {
-                        DataTable dataTable = new DataTable();
-                        dataTable.Load(reader);
-
-                        // Добавляем новую колонку для номера записи
-                        DataColumn indexColumn = new DataColumn("Index", typeof(int));
-                        dataTable.Columns.Add(indexColumn);
-
-                        // Заполняем колонку индексами
-                        int index = 1;
-                        foreach (DataRow row in dataTable.Rows)
-                        {
-                            row["Index"] = index++;
-                        }
-
-                        // Привязываем данные к DataGridView
-                        dataGridView1.DataSource = dataTable;
-
-                        // Перемещаем колонку индекса на самое левое место
-                        dataGridView1.Columns["Index"].DisplayIndex = 0;
-                    }
-
-                    // Создаем DataTable для хранения данных
-
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show("Ошибка: " + ex.Message);
-                }
-            }
+            DataBaseQueries bdQuery = new DataBaseQueries(this, this, new Item(), this.dataGridView1);
+            bdQuery.LoadFiltredData(this.comboBox2, textBox1, textBox2, textBox3);
         }
         private void AddItem()
         {
@@ -332,8 +151,6 @@ namespace WinFormsApp1.Forms
             float rate = 0.00f;
             string dealer = "208bafa0-27ab-4b55-9892-df0ab71f55a5";
             
-
-            // Создаем соединение с базой данных
             using (var conn = new NpgsqlConnection(DataBaseConnection.ConnectionString))
             {
                 // Создаем команду для выполнения SQL-запроса
@@ -342,7 +159,6 @@ namespace WinFormsApp1.Forms
                 try
                 {
                     
-                    // Открываем соединение
                     using (var cmd = new NpgsqlCommand(String.Format(
                         "INSERT INTO item(item_name, dealer_id, cost, count, rate, category) " +
                         "VALUES ('{0}' , '{1}', '{2}', '{3}', '{4}', 'Ноутбуки')",
@@ -357,9 +173,6 @@ namespace WinFormsApp1.Forms
 
                         cmd.ExecuteNonQuery();
                     }
-
-                    // Создаем DataTable для хранения данных
-
                 }
                 catch (Exception ex)
                 {
