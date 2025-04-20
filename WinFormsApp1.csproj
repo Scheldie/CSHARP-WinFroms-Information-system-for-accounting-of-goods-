@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.4" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="docker\db\pg_commit_ts\" />
+    <Folder Include="docker\db\pg_dynshmem\" />
+    <Folder Include="docker\db\pg_logical\mappings\" />
+    <Folder Include="docker\db\pg_logical\snapshots\" />
+    <Folder Include="docker\db\pg_notify\" />
+    <Folder Include="docker\db\pg_replslot\" />
+    <Folder Include="docker\db\pg_serial\" />
+    <Folder Include="docker\db\pg_snapshots\" />
+    <Folder Include="docker\db\pg_stat_tmp\" />
+    <Folder Include="docker\db\pg_tblspc\" />
+    <Folder Include="docker\db\pg_twophase\" />
+    <Folder Include="docker\db\pg_wal\archive_status\" />
+    <Folder Include="docker\db\pg_wal\summaries\" />
+  </ItemGroup>
+
+</Project>
