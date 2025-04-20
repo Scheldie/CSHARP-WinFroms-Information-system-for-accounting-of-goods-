@@ -27,6 +27,7 @@ namespace WinFormsApp1.Models
         public string name { get; set; }
         [Alias("url")]
         public string url { get; set; }
+        [Filterable]
         [Alias("rate")]
         public float rate { get; set; }
         public string GetEntityName() { return "Dealer"; }

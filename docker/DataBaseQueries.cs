@@ -67,17 +67,14 @@ namespace WinFormsApp1.docker
                         updateQuery += String.Format("{0} = '{1}',",
                             prop.GetCustomAttribute<AliasAttribute>()?.Alias, prop.GetValue(entity).ToString().Replace(",","."));
                     else if (!prop.GetCustomAttributes().Any(
-                    x => x.GetType().Name == "NonChangeAttribute") && counter < propertyCount - 2)
+                    x => x.GetType().Name == "NonChangeAttribute"))
                         updateQuery += String.Format("{0} = '{1}',",
                             prop.GetCustomAttribute<AliasAttribute>()?.Alias, prop.GetValue(entity));
-                    else if (!prop.GetCustomAttributes().Any(
-                    x => x.GetType().Name == "NonChangeAttribute") && counter == propertyCount - 2)
-                        updateQuery += String.Format("{0} = '{1}'",
-                            prop.GetCustomAttribute<AliasAttribute>()?.Alias, prop.GetValue(entity));
-                    counter++;
+                    
 
                 }
-                if (updateQuery != "" && updateQuery != $"UPDATE {TableName} SET ")
+                updateQuery = updateQuery.Substring(0, updateQuery.Length - 1);
+                if (updateQuery != "" && updateQuery != $"UPDATE {TableName} SET")
                 updateQuery += " WHERE " + entity.GetType()
                      .GetProperties().Where(x => x.Name == "id")?.FirstOrDefault()?
                 .GetCustomAttribute<AliasAttribute>()?.Alias
@@ -88,12 +85,20 @@ namespace WinFormsApp1.docker
             {
 
                 using (var conn = new NpgsqlConnection(DataBaseConnection.ConnectionString))
-                using (var command = new NpgsqlCommand(updateQuery, conn))
                 {
-
-                    conn.Open();
-                    command.ExecuteNonQuery();
-                    conn.Close();
+                    try
+                    {
+                        using (var command = new NpgsqlCommand(updateQuery, conn))
+                        {
+                            conn.Open();
+                            command.ExecuteNonQuery();
+                            conn.Close();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Возникла Ошибка при обновлении записи. Ошибка: " + ex.Message);
+                    }
                 }
             }
             LoadData(dataGridView);
@@ -136,22 +141,27 @@ namespace WinFormsApp1.docker
         //DELETE
         private void DeleteItem(DataGridView dataGridView1)
         {
-
-            if (dataGridView1.SelectedRows.Count > 0)
-            {
-                var selectedId = dataGridView1.SelectedRows[0].Cells[TableId].Value;
-                using (var connection = new NpgsqlConnection(DataBaseConnection.ConnectionString))
+                if (dataGridView1.SelectedRows.Count > 0)
                 {
-                    connection.Open();
-                    using (var command = new NpgsqlCommand(String.Format("DELETE FROM {0} WHERE {1} = '{2}'",
-                        TableName, TableId, selectedId), connection))
+                    var selectedId = dataGridView1.SelectedRows[0].Cells[TableId].Value;
+                    using (var connection = new NpgsqlConnection(DataBaseConnection.ConnectionString))
                     {
-                        command.Parameters.AddWithValue(TableId, selectedId);
-                        command.ExecuteNonQuery();
+                        connection.Open();
+                        try
+                        {
+                            using (var command = new NpgsqlCommand(String.Format("DELETE FROM {0} WHERE {1} = '{2}'",
+                                TableName, TableId, selectedId), connection))
+                            {
+                                command.Parameters.AddWithValue(TableId, selectedId);
+                                command.ExecuteNonQuery();
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show("Возникла Ошибка при удалении записи. Ошибка: " + ex.Message);
+                        }
                     }
                 }
-                //int id, const std::string& name, double price, int quantity, double rating)
-            }
             LoadData();
         }
         //SELECT * WHERE (etc)
@@ -227,7 +237,7 @@ namespace WinFormsApp1.docker
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("Ошибка: " + ex.Message);
+                    MessageBox.Show("Возникла ошибка при выборке записей с фильтрацией. Ошибка: " + ex.Message);
                 }
             }
         }

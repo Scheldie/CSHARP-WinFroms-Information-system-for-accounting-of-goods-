@@ -44,6 +44,8 @@ namespace WinFormsApp1
             textBox1.Name = "textBox1";
             textBox1.Size = new Size(434, 43);
             textBox1.TabIndex = 0;
+            textBox1.Text = "+7";
+            textBox1.TextAlign = HorizontalAlignment.Center;
             // 
             // textBox2
             // 
@@ -96,17 +98,28 @@ namespace WinFormsApp1
             Controls.Add(textBox1);
             Name = "LoginForm";
             Text = "Log In Form";
+            Load += LoginForm_Load;
             ResumeLayout(false);
             PerformLayout();
         }
 
+        #endregion
         private void button1_Click(Object sender, EventArgs e)
         {
-            this.Hide(); // Закрыть первую форму
-            NavigationForm form = new NavigationForm();
-            form.Show();
+            try
+            {
+                if (Authorize(textBox1.Text, textBox2.Text))
+                {
+                    this.Hide(); // Закрыть первую форму
+                    NavigationForm form = new NavigationForm();
+                    form.Show();
+                }
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show("Вы ввели неверный логин или пароль. Ошибка: " + ex);
+            }
         }
-        #endregion
 
         private TextBox textBox1;
         private TextBox textBox2;

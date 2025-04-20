@@ -36,3 +36,4 @@ C:\Users\user\Desktop\WinFormsApp1\obj\Debug\net9.0-windows\WinFormsApp1.Forms.D
 C:\Users\user\Desktop\WinFormsApp1\obj\Debug\net9.0-windows\WinFormsApp1.Forms.OrdersForm.resources
 C:\Users\user\Desktop\WinFormsApp1\obj\Debug\net9.0-windows\WinFormsApp1.Forms.UsersForm.resources
 C:\Users\user\Desktop\WinFormsApp1\obj\Debug\net9.0-windows\WinFormsApp1.Forms.Details.resources
+C:\Users\user\Desktop\WinFormsApp1\bin\Debug\net9.0-windows\BCrypt.Net-Next.dll
