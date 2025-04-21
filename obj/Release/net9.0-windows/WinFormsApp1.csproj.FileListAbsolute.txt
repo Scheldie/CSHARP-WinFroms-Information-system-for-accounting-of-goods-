@@ -36,3 +36,5 @@ C:\Users\user\Desktop\WinFormsApp1\obj\Release\net9.0-windows\refint\WinFormsApp
 C:\Users\user\Desktop\WinFormsApp1\obj\Release\net9.0-windows\WinFormsApp1.pdb
 C:\Users\user\Desktop\WinFormsApp1\obj\Release\net9.0-windows\WinFormsApp1.genruntimeconfig.cache
 C:\Users\user\Desktop\WinFormsApp1\obj\Release\net9.0-windows\ref\WinFormsApp1.dll
+C:\Users\user\Desktop\WinFormsApp1\bin\Release\net9.0-windows\BCrypt.Net-Next.dll
+C:\Users\user\Desktop\WinFormsApp1\obj\Release\net9.0-windows\WinFormsApp1.sourcelink.json

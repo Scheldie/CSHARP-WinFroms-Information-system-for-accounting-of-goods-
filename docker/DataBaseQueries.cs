@@ -200,7 +200,7 @@ namespace WinFormsApp1.docker
         {
             string query;
             string subquery1 = FilterSubsQuery(textBox2.Text, textBox3.Text, comboBox2.Text);
-            if (TableObjectName == "order_id" && textBox1.Text != "") query = String.Format("SELECT * FROM {0} WHERE {1} = \"{2}\"",
+            if (TableObjectName == "order_id" && textBox1.Text != "") query = String.Format("SELECT * FROM {0} WHERE {1} = '{2}'",
                 TableName, TableObjectName, textBox1.Text) + subquery1;
             else if (TableObjectName == "order_id" && textBox1.Text == "" && subquery1.Length > 4)
                 query = String.Format("SELECT * FROM {0} WHERE ",
