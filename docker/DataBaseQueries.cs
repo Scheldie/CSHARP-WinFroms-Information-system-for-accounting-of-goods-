@@ -20,6 +20,7 @@ namespace WinFormsApp1.docker
         private ISaveChanges _form_save;
         private IEntity entity;
         private DataGridView dataGridView;
+        public static bool IsOperator { get; set; }
 
         public DataBaseQueries(Form _form, ISaveChanges _form_save,
                                 IEntity entity, DataGridView dataGridView)
@@ -38,7 +39,7 @@ namespace WinFormsApp1.docker
             System.Windows.Forms.TextBox textBox1, System.Windows.Forms.TextBox textBox2,
             System.Windows.Forms.TextBox textBox3)
         {
-            LoadFiltredData(dataGridView, comboBox2, textBox1, textBox2, textBox3);
+            LoadFilteredData(dataGridView, comboBox2, textBox1, textBox2, textBox3);
         }
         private string TableName => (entity?.GetType()?.GetCustomAttributes()
                     ?.Where(x => x?.GetType()?.Name == "AliasAttribute")
@@ -141,27 +142,36 @@ namespace WinFormsApp1.docker
         //DELETE
         private void DeleteItem(DataGridView dataGridView1)
         {
+            var result = MessageBox.Show("Вы уверены, что хотите выполнить это действие? Возможно это приведет к удалению данных из других таблиц...", "Подтверждение", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (result == DialogResult.Yes)
+            {
                 if (dataGridView1.SelectedRows.Count > 0)
-                {
-                    var selectedId = dataGridView1.SelectedRows[0].Cells[TableId].Value;
-                    using (var connection = new NpgsqlConnection(DataBaseConnection.ConnectionString))
                     {
-                        connection.Open();
-                        try
+                        var selectedId = dataGridView1.SelectedRows[0].Cells[TableId].Value;
+                        using (var connection = new NpgsqlConnection(DataBaseConnection.ConnectionString))
                         {
-                            using (var command = new NpgsqlCommand(String.Format("DELETE FROM {0} WHERE {1} = '{2}'",
-                                TableName, TableId, selectedId), connection))
+                            connection.Open();
+                            try
                             {
-                                command.Parameters.AddWithValue(TableId, selectedId);
-                                command.ExecuteNonQuery();
+                                using (var command = new NpgsqlCommand(String.Format("DELETE FROM {0} CASCADE WHERE {1} = '{2}'",
+                                    TableName, TableId, selectedId), connection))
+                                {
+                                    command.Parameters.AddWithValue(TableId, selectedId);
+                                    command.ExecuteNonQuery();
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                MessageBox.Show("Возникла Ошибка при удалении записи. Ошибка: " + ex.Message);
                             }
                         }
-                        catch (Exception ex)
-                        {
-                            MessageBox.Show("Возникла Ошибка при удалении записи. Ошибка: " + ex.Message);
-                        }
-                    }
-                }
+                    }  
+            }
+            else
+            {
+                
+                MessageBox.Show("Действие отменено.", "Информация", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
             LoadData();
         }
         //SELECT * WHERE (etc)
@@ -175,7 +185,7 @@ namespace WinFormsApp1.docker
                 if (filter != "")
                 {
                     if (Double.TryParse(bottom, out double bottom1)
-                        && Double.TryParse(top, out double top1) && bottom1 - top1 < -1e-6)
+                        && Double.TryParse(top, out double top1) && Math.Abs(bottom1 - top1) > 1e-6 && bottom1 < top1)
                         subquery1 = String.Format(" AND {0} >= ", filter)
                             + bottom1 + String.Format(" AND {0} <= ", filter) + top1;
                     else if (Double.TryParse(bottom, out bottom1)
@@ -194,33 +204,26 @@ namespace WinFormsApp1.docker
             return subquery1;
         }
         //SELECT * WHERE (main)
-        private void LoadFiltredData(DataGridView dataGridView1,
+        private void LoadFilteredData(DataGridView dataGridView1,
             System.Windows.Forms.ComboBox comboBox2, System.Windows.Forms.TextBox textBox1,
             System.Windows.Forms.TextBox textBox2, System.Windows.Forms.TextBox textBox3)
         {
             string query;
             string subquery1 = FilterSubsQuery(textBox2.Text, textBox3.Text, comboBox2.Text);
-            if (TableObjectName == "order_id" && textBox1.Text != "") query = String.Format("SELECT * FROM {0} WHERE {1} = '{2}'",
-                TableName, TableObjectName, textBox1.Text) + subquery1;
-            else if (TableObjectName == "order_id" && textBox1.Text == "" && subquery1.Length > 4)
-                query = String.Format("SELECT * FROM {0} WHERE ",
-                TableName) + subquery1.Substring(4);
-            else if (TableObjectName == "order_id" && textBox1.Text == "" && subquery1 == "")
-                query = String.Format("SELECT * FROM {0}", TableName);
-            else
-                query = String.Format("SELECT * FROM {0} WHERE {1} LIKE '%{2}%'",
-                    TableName, TableObjectName, textBox1.Text) + subquery1;
+            
+            query = String.Format("SELECT * FROM {0} WHERE {1} LIKE @filter",
+                TableName, TableObjectName) + subquery1;
             using (var conn = new NpgsqlConnection(DataBaseConnection.ConnectionString))
             {
                 conn.Open();
                 var command = new NpgsqlCommand(query, conn);
-
+                command.Parameters.AddWithValue("@filter", '%' + textBox1.Text.Trim() + '%');
                 try
                 {
-                    using (var cmd = new NpgsqlCommand(String.Format("SELECT * FROM {0} WHERE {1} LIKE '%{2}%'",
-                        TableName, TableObjectName, textBox1.Text) + subquery1, conn))
+                    
                     using (var reader = command.ExecuteReader())
                     {
+                        
                         DataTable dataTable = new DataTable();
                         dataTable.Load(reader);
                         DataColumn indexColumn = new DataColumn("Index", typeof(int));

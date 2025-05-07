@@ -34,7 +34,6 @@ namespace WinFormsApp1.Forms
             label1 = new Label();
             button1 = new Button();
             label6 = new Label();
-            button2 = new Button();
             dataGridView1 = new DataGridView();
             button4 = new Button();
             button5 = new Button();
@@ -79,16 +78,6 @@ namespace WinFormsApp1.Forms
             label6.Size = new Size(308, 60);
             label6.TabIndex = 11;
             label6.Text = "Пользователи";
-            // 
-            // button2
-            // 
-            button2.Location = new Point(874, 31);
-            button2.Name = "button2";
-            button2.Size = new Size(94, 29);
-            button2.TabIndex = 12;
-            button2.Text = "back";
-            button2.UseVisualStyleBackColor = true;
-            button2.Click += buttonBack_Click;
             // 
             // dataGridView1
             // 
@@ -140,7 +129,6 @@ namespace WinFormsApp1.Forms
             ClientSize = new Size(1000, 660);
             Controls.Add(groupBox1);
             Controls.Add(dataGridView1);
-            Controls.Add(button2);
             Controls.Add(label6);
             Controls.Add(button1);
             Controls.Add(label1);
@@ -158,6 +146,7 @@ namespace WinFormsApp1.Forms
 
         private void buttonBack_Click(Object sender, EventArgs e)
         {
+            this.Owner.Location = this.Location;
             this.Owner.Show();
             this.Hide(); // Закрыть первую форму
 
@@ -183,7 +172,6 @@ namespace WinFormsApp1.Forms
         private Label label1;
         private Button button1;
         private Label label6;
-        private Button button2;
         private DataGridView dataGridView1;
         private Button button4;
         private Button button5;

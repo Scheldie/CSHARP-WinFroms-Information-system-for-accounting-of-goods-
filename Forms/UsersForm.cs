@@ -1,4 +1,5 @@
-﻿using Npgsql;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Npgsql;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -11,7 +12,10 @@ using System.Windows.Forms;
 using WinFormsApp1.docker;
 using WinFormsApp1.Entities;
 using WinFormsApp1.Models;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using static System.Net.Mime.MediaTypeNames;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Button;
 
 namespace WinFormsApp1.Forms
 {
@@ -19,14 +23,34 @@ namespace WinFormsApp1.Forms
     {
         public UsersForm()
         {
+            
             InitializeComponent();
             this.SizeChanged += Form_SizeChanged;
 
+            this.FormClosing += UsersForm_FormClosing;
+
+        }
+        private void UsersForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            // Проходим по всем открытым дочерним формам
+            foreach (Form openForm in System.Windows.Forms.Application.OpenForms)
+            {
+                // Опционально: исключаете главную форму из закрытия
+                if (openForm != this)
+                {
+                    openForm.Close();
+                }
+            }
         }
 
         private void UsersForm_Load(object sender, EventArgs e)
         {
             LoadData();
+            if (DataBaseQueries.IsOperator)
+            {
+                groupBox1.Visible = false;
+
+            }
 
         }
         private void Form_SizeChanged(object sender, EventArgs e)
@@ -46,10 +70,38 @@ namespace WinFormsApp1.Forms
         }
         private void LoadFiltredData()
         {
-            DataBaseQueries dbQuery = new DataBaseQueries(this, this, new User(), dataGridView1);
-            dbQuery.LoadFiltredData(new System.Windows.Forms.ComboBox() { Text= ""}, 
-                textBox1, new System.Windows.Forms.TextBox() { Text = "" }, 
-                new System.Windows.Forms.TextBox() { Text = "" });
+            if (textBox1.Text == "") { LoadData(); return; }
+            var salt = "$yj*94g=)";
+            using (var conn = new NpgsqlConnection(DataBaseConnection.ConnectionString))
+            {
+                conn.Open();
+                try
+                {
+                    using (var cmd = new NpgsqlCommand("SELECT * FROM users WHERE phone_number = @phone_number", conn))
+                    {
+                        cmd.Parameters.AddWithValue("@phone_number", LoginForm.ComputeSha256Hash(textBox1.Text+salt));
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            DataTable dataTable = new DataTable();
+                            dataTable.Load(reader);
+                            DataColumn indexColumn = new DataColumn("Index", typeof(int));
+                            dataTable.Columns.Add(indexColumn);
+
+                            int index = 1;
+                            foreach (DataRow row in dataTable.Rows)
+                            {
+                                row["Index"] = index++;
+                            }
+                            dataGridView1.DataSource = dataTable;
+                            dataGridView1.Columns["Index"].DisplayIndex = 0;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Возникла ошибка при выборке записей с фильтрацией. Ошибка: " + ex.Message);
+                }
+            }
         }
         private void DeleteUser()
         {
@@ -73,7 +125,7 @@ namespace WinFormsApp1.Forms
         }
         private void ViewDetails()
         {
-            if (dataGridView1.SelectedRows.Count > 0)
+            if (dataGridView1.SelectedRows.Count > 0 && SelectedRow("user_id") != null)
             {
 
                 User user = new User(Guid.Parse(SelectedRow("user_id").ToString()),

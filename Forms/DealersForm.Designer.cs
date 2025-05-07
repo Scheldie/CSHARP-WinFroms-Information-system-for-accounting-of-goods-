@@ -38,7 +38,6 @@
             label4 = new Label();
             label5 = new Label();
             label6 = new Label();
-            button2 = new Button();
             dataGridView1 = new DataGridView();
             label7 = new Label();
             textBox4 = new TextBox();
@@ -139,16 +138,6 @@
             label6.Size = new Size(275, 60);
             label6.TabIndex = 11;
             label6.Text = "Поставщики";
-            // 
-            // button2
-            // 
-            button2.Location = new Point(874, 31);
-            button2.Name = "button2";
-            button2.Size = new Size(94, 29);
-            button2.TabIndex = 12;
-            button2.Text = "back";
-            button2.UseVisualStyleBackColor = true;
-            button2.Click += buttonBack_Click;
             // 
             // dataGridView1
             // 
@@ -256,7 +245,6 @@
             Controls.Add(groupBox2);
             Controls.Add(groupBox1);
             Controls.Add(dataGridView1);
-            Controls.Add(button2);
             Controls.Add(label6);
             Controls.Add(label5);
             Controls.Add(label4);
@@ -282,6 +270,7 @@
 
         private void buttonBack_Click(Object sender, EventArgs e)
         {
+            this.Owner.Location = this.Location;
             this.Owner.Show();
             this.Hide(); // Закрыть первую форму
 
@@ -298,6 +287,7 @@
         }
         private void button4_Click(Object sender, EventArgs e)
         {
+            
             DeleteDealer();
 
         }
@@ -316,7 +306,6 @@
         private Label label4;
         private Label label5;
         private Label label6;
-        private Button button2;
         private DataGridView dataGridView1;
         private Label label7;
         private TextBox textBox4;

@@ -20,9 +20,24 @@ namespace WinFormsApp1.Forms
     {
         public DealersForm()
         {
+            
             InitializeComponent();
             this.SizeChanged += Form_SizeChanged;
+            this.FormClosing += DealersForm_FormClosing;
 
+        }
+
+        private void DealersForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            // Проходим по всем открытым дочерним формам
+            foreach (Form openForm in Application.OpenForms)
+            {
+                // Опционально: исключаете главную форму из закрытия
+                if (openForm != this)
+                {
+                    openForm.Close();
+                }
+            }
         }
 
         private void Dealers_Load(object sender, EventArgs e)
@@ -41,6 +56,12 @@ namespace WinFormsApp1.Forms
                 }
             }
             comboBox2.DataSource = items;
+            if (DataBaseQueries.IsOperator)
+            {
+                groupBox1.Visible = false;
+                groupBox2.Visible = false;
+
+            }
 
         }
 
@@ -94,18 +115,18 @@ namespace WinFormsApp1.Forms
             using (var conn = new NpgsqlConnection(DataBaseConnection.ConnectionString))
             {
                 // Создаем команду для выполнения SQL-запроса
-                conn.Open();
 
                 try
                 {
                     // Открываем соединение
                     using (var cmd = new NpgsqlCommand(String.Format(
-                        "INSERT INTO dealer (rate, dealer_name, url) VALUES ('{0}' ,'{1}', '{2}')", 
-                        rate, Name, url), conn))
+                        "INSERT INTO dealer (rate, dealer_name, url) VALUES (@rate ,@dealer_name, @url)",
+                        conn)))
                     {
-                        cmd.Parameters.AddWithValue("rate", rate);
-                        cmd.Parameters.AddWithValue("dealer_name", Name);
-                        cmd.Parameters.AddWithValue("url", url);
+                        cmd.Parameters.AddWithValue("@rate", rate);
+                        cmd.Parameters.AddWithValue("@dealer_name", Name);
+                        cmd.Parameters.AddWithValue("@url", url);
+                        conn.Open();
                         cmd.ExecuteNonQuery();
                     }
 
@@ -125,7 +146,7 @@ namespace WinFormsApp1.Forms
         }
         private void ViewDetails()
         {
-            if (dataGridView1.SelectedRows.Count > 0)
+            if (dataGridView1.SelectedRows.Count > 0 && SelectedRow("dealer_id") != null)
             {
 
                 Dealer user = new Dealer(Guid.Parse(SelectedRow("dealer_id").ToString()),

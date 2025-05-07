@@ -33,7 +33,6 @@
             label4 = new Label();
             label5 = new Label();
             label6 = new Label();
-            button2 = new Button();
             dataGridView1 = new DataGridView();
             label8 = new Label();
             button3 = new Button();
@@ -46,10 +45,10 @@
             textBox5 = new TextBox();
             textBox6 = new TextBox();
             groupBox2 = new GroupBox();
+            label9 = new Label();
+            textBox7 = new TextBox();
             label3 = new Label();
             comboBox2 = new ComboBox();
-            textBox7 = new TextBox();
-            label9 = new Label();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
@@ -80,7 +79,7 @@
             button1.TabIndex = 2;
             button1.Text = "Search";
             button1.UseVisualStyleBackColor = false;
-            button1.Click += new System.EventHandler(button1_Click);
+            button1.Click += button1_Click;
             // 
             // textBox2
             // 
@@ -123,16 +122,6 @@
             label6.Size = new Size(166, 60);
             label6.TabIndex = 11;
             label6.Text = "Заказы";
-            // 
-            // button2
-            // 
-            button2.Location = new Point(874, 31);
-            button2.Name = "button2";
-            button2.Size = new Size(94, 29);
-            button2.TabIndex = 12;
-            button2.Text = "back";
-            button2.UseVisualStyleBackColor = true;
-            button2.Click += buttonBack_Click;
             // 
             // dataGridView1
             // 
@@ -252,6 +241,22 @@
             groupBox2.TabIndex = 26;
             groupBox2.TabStop = false;
             // 
+            // label9
+            // 
+            label9.AutoSize = true;
+            label9.Location = new Point(1, 48);
+            label9.Name = "label9";
+            label9.Size = new Size(141, 20);
+            label9.TabIndex = 27;
+            label9.Text = "User Phone Number";
+            // 
+            // textBox7
+            // 
+            textBox7.Location = new Point(1, 71);
+            textBox7.Name = "textBox7";
+            textBox7.Size = new Size(176, 27);
+            textBox7.TabIndex = 26;
+            // 
             // label3
             // 
             label3.AutoSize = true;
@@ -269,22 +274,6 @@
             comboBox2.Size = new Size(168, 28);
             comboBox2.TabIndex = 5;
             // 
-            // textBox7
-            // 
-            textBox7.Location = new Point(1, 71);
-            textBox7.Name = "textBox7";
-            textBox7.Size = new Size(176, 27);
-            textBox7.TabIndex = 26;
-            // 
-            // label9
-            // 
-            label9.AutoSize = true;
-            label9.Location = new Point(1, 48);
-            label9.Name = "label9";
-            label9.Size = new Size(141, 20);
-            label9.TabIndex = 27;
-            label9.Text = "User Phone Number";
-            // 
             // OrdersForm
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -293,7 +282,6 @@
             Controls.Add(groupBox2);
             Controls.Add(groupBox1);
             Controls.Add(dataGridView1);
-            Controls.Add(button2);
             Controls.Add(label6);
             Controls.Add(label5);
             Controls.Add(label4);
@@ -319,6 +307,7 @@
 
         private void buttonBack_Click(Object sender, EventArgs e)
         {
+            this.Owner.Location = this.Location;
             this.Owner.Show();
             this.Hide(); // Закрыть первую форму
 
@@ -339,7 +328,7 @@
         }
         private void button1_Click(Object sender, EventArgs e)
         {
-            LoadFiltredData();
+            LoadFilteredData();
 
         }
         
@@ -352,7 +341,6 @@
         private Label label4;
         private Label label5;
         private Label label6;
-        private Button button2;
         private DataGridView dataGridView1;
         private Label label8;
         private Button button3;

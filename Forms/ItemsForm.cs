@@ -16,16 +16,31 @@ using WinFormsApp1.Entities;
 using WinFormsApp1.Models;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 using static System.ComponentModel.Design.ObjectSelectorEditor;
+using static System.Windows.Forms.DataFormats;
 
 namespace WinFormsApp1.Forms
 {
-    public partial class ItemsForm : Form, ISaveChanges 
+    public partial class ItemsForm : Form, ISaveChanges
     {
         public ItemsForm()
         {
+
             InitializeComponent();
             this.SizeChanged += Form_SizeChanged;
+            this.FormClosing += ItemsForm_FormClosing;
+        }
 
+        private void ItemsForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            // Проходим по всем открытым дочерним формам
+            foreach (Form openForm in Application.OpenForms)
+            {
+                // Опционально: исключаете главную форму из закрытия
+                if (openForm != this)
+                {
+                    openForm.Close();
+                }
+            }
         }
 
         private void Items_Load(object sender, EventArgs e)
@@ -44,6 +59,12 @@ namespace WinFormsApp1.Forms
                 }
             }
             comboBox2.DataSource = items;
+            if (DataBaseQueries.IsOperator)
+            {
+                groupBox1.Visible = false;
+                groupBox2.Visible = false;
+
+            }
 
         }
         private void Form_SizeChanged(object sender, EventArgs e)
@@ -70,11 +91,11 @@ namespace WinFormsApp1.Forms
         {
             return dataGridView1.SelectedRows[0].Cells[text].Value;
         }
-        
+
 
         private void ViewDetails()
         {
-            if (dataGridView1.SelectedRows.Count > 0)
+            if (dataGridView1.SelectedRows.Count > 0 && SelectedRow("item_id") != null)
             {
 
                 string query = String.Format
@@ -117,7 +138,7 @@ namespace WinFormsApp1.Forms
                     (float)Convert.ToInt32(SelectedRow("cost")), Convert.ToInt32(SelectedRow("count")),
                 (float)Convert.ToInt32(SelectedRow("rate")), dealer_name);
                 Details form = new Details(item, this);
-                
+
                 form.Owner = this;
                 form.Show();
             }
@@ -146,11 +167,11 @@ namespace WinFormsApp1.Forms
 
             // SQL-запрос для выборки данных
             string Name = textBox4.Text;
-            string price = textBox5.Text;
-            string Quantity = textBox6.Text;
+            float price = float.Parse(textBox5.Text);
+            int Quantity = int.Parse(textBox6.Text);
             float rate = 0.00f;
-            string dealer = "208bafa0-27ab-4b55-9892-df0ab71f55a5";
-            
+            Guid dealer = new Guid();
+
             using (var conn = new NpgsqlConnection(DataBaseConnection.ConnectionString))
             {
                 // Создаем команду для выполнения SQL-запроса
@@ -158,20 +179,34 @@ namespace WinFormsApp1.Forms
 
                 try
                 {
-                    
-                    using (var cmd = new NpgsqlCommand(String.Format(
-                        "INSERT INTO item(item_name, dealer_id, cost, count, rate, category) " +
-                        "VALUES ('{0}' , '{1}', '{2}', '{3}', '{4}', 'Ноутбуки')",
-                        Name, dealer, price, Quantity, rate), conn))
+                    using (var cmd = new NpgsqlCommand("SELECT dealer_id FROM dealer WHERE dealer_name = @dealer_name", conn))
                     {
-                        cmd.Parameters.AddWithValue("item_name", Name);
-                        cmd.Parameters.AddWithValue("dealer_id", dealer);
-                        cmd.Parameters.AddWithValue("cost", price);
-                        cmd.Parameters.AddWithValue("count", Quantity);
-                        cmd.Parameters.AddWithValue("rate", rate);
-                        cmd.Parameters.AddWithValue("сategory", "Ноутбуки");
+                        cmd.Parameters.AddWithValue("@dealer_name", textBox7.Text);
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                // Обрабатываем результаты запроса
+                                dealer = Guid.Parse(reader["dealer_id"].ToString());
+                            }
+                        }
+                    }
+                    if (dealer != new Guid())
+                    {
+                        using (var cmd = new NpgsqlCommand(String.Format(
+                            "INSERT INTO item(item_name, dealer_id, cost, count, rate, category) " +
+                            "VALUES (@item_name , @dealer_id, @cost, @count, @rate, 'Ноутбуки')"
+                            ), conn))
+                        {
+                            cmd.Parameters.AddWithValue("@item_name", Name);
+                            cmd.Parameters.AddWithValue("@dealer_id", dealer);
+                            cmd.Parameters.AddWithValue("@cost", price);
+                            cmd.Parameters.AddWithValue("@count", Quantity);
+                            cmd.Parameters.AddWithValue("@rate", rate);
 
-                        cmd.ExecuteNonQuery();
+
+                            cmd.ExecuteNonQuery();
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -183,6 +218,11 @@ namespace WinFormsApp1.Forms
         }
 
         private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+
+        }
+
+        private void groupBox1_Enter(object sender, EventArgs e)
         {
 
         }

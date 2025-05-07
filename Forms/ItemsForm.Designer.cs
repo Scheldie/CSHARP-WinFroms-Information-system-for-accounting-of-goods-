@@ -42,7 +42,6 @@ namespace WinFormsApp1.Forms
             label4 = new Label();
             label5 = new Label();
             label6 = new Label();
-            button2 = new Button();
             dataGridView1 = new DataGridView();
             label7 = new Label();
             textBox4 = new TextBox();
@@ -55,6 +54,8 @@ namespace WinFormsApp1.Forms
             button5 = new Button();
             groupBox1 = new GroupBox();
             groupBox2 = new GroupBox();
+            label10 = new Label();
+            textBox7 = new TextBox();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
@@ -85,7 +86,7 @@ namespace WinFormsApp1.Forms
             button1.TabIndex = 2;
             button1.Text = "Search";
             button1.UseVisualStyleBackColor = false;
-            button1.Click += new EventHandler(button1_Click);
+            button1.Click += button1_Click;
             // 
             // comboBox1
             // 
@@ -162,16 +163,6 @@ namespace WinFormsApp1.Forms
             label6.Size = new Size(176, 60);
             label6.TabIndex = 11;
             label6.Text = "Товары";
-            // 
-            // button2
-            // 
-            button2.Location = new Point(874, 31);
-            button2.Name = "button2";
-            button2.Size = new Size(94, 29);
-            button2.TabIndex = 12;
-            button2.Text = "back";
-            button2.UseVisualStyleBackColor = true;
-            button2.Click += buttonBack_Click;
             // 
             // dataGridView1
             // 
@@ -275,20 +266,39 @@ namespace WinFormsApp1.Forms
             groupBox1.Size = new Size(259, 101);
             groupBox1.TabIndex = 23;
             groupBox1.TabStop = false;
+            groupBox1.Enter += groupBox1_Enter;
             // 
             // groupBox2
             // 
+            groupBox2.Controls.Add(label10);
+            groupBox2.Controls.Add(textBox7);
             groupBox2.Controls.Add(label9);
             groupBox2.Controls.Add(label8);
             groupBox2.Controls.Add(textBox6);
             groupBox2.Controls.Add(textBox5);
             groupBox2.Controls.Add(textBox4);
             groupBox2.Controls.Add(label7);
-            groupBox2.Location = new Point(7, 557);
+            groupBox2.Location = new Point(7, 547);
             groupBox2.Name = "groupBox2";
-            groupBox2.Size = new Size(619, 86);
+            groupBox2.Size = new Size(619, 107);
             groupBox2.TabIndex = 24;
             groupBox2.TabStop = false;
+            // 
+            // label10
+            // 
+            label10.AutoSize = true;
+            label10.Location = new Point(6, 63);
+            label10.Name = "label10";
+            label10.Size = new Size(97, 20);
+            label10.TabIndex = 21;
+            label10.Text = "Dealer Name";
+            // 
+            // textBox7
+            // 
+            textBox7.Location = new Point(5, 77);
+            textBox7.Name = "textBox7";
+            textBox7.Size = new Size(176, 27);
+            textBox7.TabIndex = 20;
             // 
             // ItemsForm
             // 
@@ -298,7 +308,6 @@ namespace WinFormsApp1.Forms
             Controls.Add(groupBox2);
             Controls.Add(groupBox1);
             Controls.Add(dataGridView1);
-            Controls.Add(button2);
             Controls.Add(label6);
             Controls.Add(label5);
             Controls.Add(label4);
@@ -352,6 +361,7 @@ namespace WinFormsApp1.Forms
         }
         private void buttonBack_Click(Object sender, EventArgs e)
         {
+            this.Owner.Location = this.Location;
             this.Owner.Show();
             this.Hide(); // Закрыть первую форму
             
@@ -383,7 +393,6 @@ namespace WinFormsApp1.Forms
         private Label label4;
         private Label label5;
         private Label label6;
-        private Button button2;
         private DataGridView dataGridView1;
         private Label label7;
         private TextBox textBox4;
@@ -396,5 +405,7 @@ namespace WinFormsApp1.Forms
         private Button button5;
         private GroupBox groupBox1;
         private GroupBox groupBox2;
+        private Label label10;
+        private TextBox textBox7;
     }
 }

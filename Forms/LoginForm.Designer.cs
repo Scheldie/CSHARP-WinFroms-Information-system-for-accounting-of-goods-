@@ -40,7 +40,7 @@ namespace WinFormsApp1
             // textBox1
             // 
             textBox1.Font = new Font("Segoe UI", 16.2F, FontStyle.Regular, GraphicsUnit.Point, 204);
-            textBox1.Location = new Point(268, 169);
+            textBox1.Location = new Point(324, 186);
             textBox1.Name = "textBox1";
             textBox1.Size = new Size(434, 43);
             textBox1.TabIndex = 0;
@@ -50,7 +50,7 @@ namespace WinFormsApp1
             // textBox2
             // 
             textBox2.Font = new Font("Segoe UI", 16.2F, FontStyle.Regular, GraphicsUnit.Point, 204);
-            textBox2.Location = new Point(268, 255);
+            textBox2.Location = new Point(324, 281);
             textBox2.Name = "textBox2";
             textBox2.PasswordChar = '*';
             textBox2.Size = new Size(434, 43);
@@ -60,7 +60,7 @@ namespace WinFormsApp1
             // button1
             // 
             button1.BackColor = SystemColors.ActiveCaption;
-            button1.Location = new Point(268, 330);
+            button1.Location = new Point(324, 340);
             button1.Name = "button1";
             button1.Size = new Size(434, 64);
             button1.TabIndex = 2;
@@ -71,7 +71,7 @@ namespace WinFormsApp1
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new Point(268, 146);
+            label1.Location = new Point(324, 163);
             label1.Name = "label1";
             label1.Size = new Size(127, 20);
             label1.TabIndex = 3;
@@ -80,7 +80,7 @@ namespace WinFormsApp1
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(268, 232);
+            label2.Location = new Point(324, 258);
             label2.Name = "label2";
             label2.Size = new Size(62, 20);
             label2.TabIndex = 4;
@@ -90,7 +90,8 @@ namespace WinFormsApp1
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1000, 660);
+            BackColor = SystemColors.Control;
+            ClientSize = new Size(1100, 740);
             Controls.Add(label2);
             Controls.Add(label1);
             Controls.Add(button1);
@@ -112,6 +113,8 @@ namespace WinFormsApp1
                 {
                     this.Hide(); // Закрыть первую форму
                     NavigationForm form = new NavigationForm();
+                    form.StartPosition = FormStartPosition.Manual;
+                    form.Location = this.Location;
                     form.Show();
                 }
             }
