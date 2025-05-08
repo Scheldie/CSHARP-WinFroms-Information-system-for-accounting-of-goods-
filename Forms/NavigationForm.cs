@@ -42,11 +42,12 @@ namespace WinFormsApp1
 
             // Создание кнопок
             Button btnItems = CreateSidebarButton("Товары", 0, (s, e) => LoadFormInPanel(new ItemsForm()));
-            Button btnDealers = CreateSidebarButton("Поставщики", 40, (s, e) => LoadFormInPanel(new DealersForm()));
-            Button btnOrders = CreateSidebarButton("Заказы", 80, (s, e) => LoadFormInPanel(new OrdersForm()));
-            Button btnUsers = CreateSidebarButton("Пользователи", 120, (s, e) => LoadFormInPanel(new UsersForm()));
+            Button btnDealers = CreateSidebarButton("Поставщики", 60, (s, e) => LoadFormInPanel(new DealersForm()));
+            Button btnOrders = CreateSidebarButton("Заказы", 120, (s, e) => LoadFormInPanel(new OrdersForm()));
+            Button btnUsers = CreateSidebarButton("Пользователи", 180, (s, e) => LoadFormInPanel(new UsersForm()));
+            Button btnStats = CreateSidebarButton("Анализ", 240, (s, e) => LoadFormInPanel(new Statistics()));
 
-            panelSidebar.Controls.AddRange(new Control[] { btnItems, btnDealers, btnOrders, btnUsers });
+            panelSidebar.Controls.AddRange(new Control[] { btnItems, btnDealers, btnOrders, btnUsers, btnStats });
         }
 
         private Button CreateSidebarButton(string text, int top, EventHandler onClick)

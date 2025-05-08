@@ -1,4 +1,5 @@
 ﻿using Npgsql;
+using NpgsqlTypes;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -20,7 +21,7 @@ namespace WinFormsApp1.Forms
     {
         public OrdersForm()
         {
-            
+
             InitializeComponent();
             this.SizeChanged += Form_SizeChanged;
             this.FormClosing += OrdersForm_FormClosing;
@@ -107,6 +108,8 @@ namespace WinFormsApp1.Forms
         }
         private void LoadFilteredData()
         {
+            Guid name = Guid.NewGuid();
+            Guid.TryParse(textBox1.Text, out name);
             string query;
             string subquery1 = FilterSubsQuery(textBox2.Text, textBox3.Text, comboBox2.Text);
             if (textBox1.Text != "") query = String.Format("SELECT * FROM orders WHERE order_id = @filter",
@@ -119,13 +122,13 @@ namespace WinFormsApp1.Forms
             {
                 conn.Open();
                 var command = new NpgsqlCommand(query, conn);
-                command.Parameters.AddWithValue("@filter", Guid.Parse(textBox1.Text));
+                command.Parameters.AddWithValue("@filter", name);
                 try
                 {
-                    
+
                     using (var reader = command.ExecuteReader())
                     {
-                        
+
                         DataTable dataTable = new DataTable();
                         dataTable.Load(reader);
                         DataColumn indexColumn = new DataColumn("Index", typeof(int));
@@ -146,11 +149,31 @@ namespace WinFormsApp1.Forms
                 }
             }
         }
-        
+
         private void DeleteOrder()
         {
             DataBaseQueries dbQuery = new DataBaseQueries(this, this, new Order(), dataGridView1);
             dbQuery.DeleteItem();
+        }
+        private void CancelOrder(string orderId)
+        {
+
+            using var conn = new NpgsqlConnection(DataBaseConnection.ConnectionString);
+            conn.Open();
+
+            using var cmd = new NpgsqlCommand("CALL cancel_order(@order_id)", conn);
+            cmd.Parameters.AddWithValue("@order_id", Guid.Parse(orderId));
+
+            try
+            {
+                cmd.ExecuteNonQuery();
+                MessageBox.Show("✅ Заказ успешно отменён.", "Успех", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"❌ Ошибка отмены заказа:\n{ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            LoadData();
         }
         public void SaveChanges(IEntity entity)
         {
@@ -162,67 +185,48 @@ namespace WinFormsApp1.Forms
             bdQuery.SaveChange();
 
         }
-        private void AddOrder()
+        public void CreateOrder(string userId, int finalPlace, List<(Guid itemId, int quantity)> items)
         {
-            // Строка подключения к вашей базе данных
-
-
-            // SQL-запрос для выборки данных
-            string final_cost = textBox4.Text;
-            string items_quantity = textBox5.Text;
-            string final_place = textBox6.Text;
-            Guid user_id = new Guid();
-
-
-
             var salt = "$yj*94g=)";
-            // Создаем соединение с базой данных
-            using (var conn = new NpgsqlConnection(DataBaseConnection.ConnectionString))
+            var user_id = "";
+            using var conn = new NpgsqlConnection(DataBaseConnection.ConnectionString);
+            conn.Open();
+            using (var command = new NpgsqlCommand("SELECT user_id FROM users WHERE phone_number = @phone_number", conn))
             {
-                // Создаем команду для выполнения SQL-запроса
-                conn.Open();
-
-                try
+                command.Parameters.AddWithValue("@phone_number", LoginForm.ComputeSha256Hash(userId + salt));
+                using (var reader = command.ExecuteReader())
                 {
-                    using (var cmd = new NpgsqlCommand("SELECT user_id FROM users WHERE phone_number = @phone_number", conn))
+                    while (reader.Read())
                     {
-                        cmd.Parameters.AddWithValue("@phone_number", LoginForm.ComputeSha256Hash(textBox7.Text+salt));
-                        using (var reader = cmd.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                // Обрабатываем результаты запроса
-                                user_id = Guid.Parse(reader["user_id"].ToString());
-                            }
-                        }
+                        // Обрабатываем результаты запроса
+                        user_id = reader["user_id"].ToString();
                     }
-                    if (user_id != new Guid())
-                    {
-                        // Открываем соединение
-                        using (var cmd = new NpgsqlCommand(
-                        "INSERT INTO orders(user_id, final_cost, count, final_place) " +
-                        "VALUES (@user_id, @final_cost, @count, @final_place)",
-                        conn))
-                        {
-
-                            cmd.Parameters.AddWithValue("@user_id", user_id);
-                            cmd.Parameters.AddWithValue("@final_cost", Double.Parse(final_cost));
-                            cmd.Parameters.AddWithValue("@count", Int32.Parse(items_quantity));
-                            cmd.Parameters.AddWithValue("@final_place", Int32.Parse(final_place));
-
-                            cmd.ExecuteNonQuery();
-                        }
-                    }
-                    // Создаем DataTable для хранения данных
-
                 }
-                catch (Exception ex)
-                {
-                    MessageBox.Show("Ошибка: " + ex.Message);
-                }
+            }
+
+            using var cmd = new NpgsqlCommand("CALL create_order(@user_id, @final_place, @item_info)", conn);
+
+            cmd.Parameters.AddWithValue("@user_id", Guid.Parse(user_id));
+            cmd.Parameters.AddWithValue("@final_place", NpgsqlTypes.NpgsqlDbType.Integer, finalPlace);
+
+            // Сформировать массив строк типа item_id:количество
+            var itemInfoArray = items.Select(i => $"{i.itemId}:{i.quantity}").ToArray();
+            cmd.Parameters.AddWithValue("@item_info", NpgsqlTypes.NpgsqlDbType.Array | 
+                NpgsqlTypes.NpgsqlDbType.Text, itemInfoArray);
+
+            try
+            {
+                cmd.ExecuteNonQuery();
+                MessageBox.Show("✅ Заказ успешно создан!", "Успех", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"❌ Ошибка создания заказа:\n{ex.Message}", 
+                    "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             LoadData();
         }
+        
         private object? SelectedRow(string text)
         {
             return dataGridView1.SelectedRows[0].Cells[text].Value;
@@ -232,7 +236,7 @@ namespace WinFormsApp1.Forms
             if (dataGridView1.SelectedRows.Count > 0 && SelectedRow("order_id") != null)
             {
 
-                Order order = new Order(Guid.Parse(SelectedRow("order_id").ToString()), 
+                Order order = new Order(Guid.Parse(SelectedRow("order_id").ToString()),
                     SelectedRow("user_id").ToString(), (float)Convert.ToDouble(SelectedRow("final_cost")), Convert.ToInt32(SelectedRow("count")),
                 SelectedRow("final_place").ToString());
                 Details form = new Details(order, this);
@@ -241,6 +245,11 @@ namespace WinFormsApp1.Forms
                 form.Owner = this;
                 form.Show();
             }
+
+        }
+
+        private void label8_Click(object sender, EventArgs e)
+        {
 
         }
     }

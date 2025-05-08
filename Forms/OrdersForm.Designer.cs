@@ -40,8 +40,6 @@
             button5 = new Button();
             groupBox1 = new GroupBox();
             label2 = new Label();
-            label7 = new Label();
-            textBox4 = new TextBox();
             textBox5 = new TextBox();
             textBox6 = new TextBox();
             groupBox2 = new GroupBox();
@@ -136,11 +134,12 @@
             // label8
             // 
             label8.AutoSize = true;
-            label8.Location = new Point(210, 2);
+            label8.Location = new Point(6, 0);
             label8.Name = "label8";
-            label8.Size = new Size(105, 20);
+            label8.Size = new Size(45, 20);
             label8.TabIndex = 18;
-            label8.Text = "Items Quantity";
+            label8.Text = "Items";
+            label8.Click += label8_Click;
             // 
             // button3
             // 
@@ -149,7 +148,7 @@
             button3.Name = "button3";
             button3.Size = new Size(112, 39);
             button3.TabIndex = 20;
-            button3.Text = "Add";
+            button3.Text = "Create";
             button3.UseVisualStyleBackColor = false;
             button3.Click += button3_Click;
             // 
@@ -160,7 +159,7 @@
             button4.Name = "button4";
             button4.Size = new Size(112, 39);
             button4.TabIndex = 21;
-            button4.Text = "Delete";
+            button4.Text = "Cancel";
             button4.UseVisualStyleBackColor = false;
             button4.Click += button4_Click;
             // 
@@ -189,38 +188,23 @@
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(407, 0);
+            label2.Location = new Point(209, 0);
             label2.Name = "label2";
             label2.Size = new Size(79, 20);
             label2.TabIndex = 25;
             label2.Text = "Final Place";
             // 
-            // label7
-            // 
-            label7.AutoSize = true;
-            label7.Location = new Point(1, 2);
-            label7.Name = "label7";
-            label7.Size = new Size(73, 20);
-            label7.TabIndex = 14;
-            label7.Text = "Final Cost";
-            // 
-            // textBox4
-            // 
-            textBox4.Location = new Point(1, 25);
-            textBox4.Name = "textBox4";
-            textBox4.Size = new Size(176, 27);
-            textBox4.TabIndex = 15;
-            // 
             // textBox5
             // 
-            textBox5.Location = new Point(210, 26);
+            textBox5.Location = new Point(6, 23);
+            textBox5.Multiline = true;
             textBox5.Name = "textBox5";
-            textBox5.Size = new Size(176, 27);
+            textBox5.Size = new Size(176, 81);
             textBox5.TabIndex = 16;
             // 
             // textBox6
             // 
-            textBox6.Location = new Point(407, 25);
+            textBox6.Location = new Point(209, 18);
             textBox6.Name = "textBox6";
             textBox6.Size = new Size(176, 27);
             textBox6.TabIndex = 24;
@@ -232,9 +216,7 @@
             groupBox2.Controls.Add(textBox6);
             groupBox2.Controls.Add(label2);
             groupBox2.Controls.Add(textBox5);
-            groupBox2.Controls.Add(textBox4);
             groupBox2.Controls.Add(label8);
-            groupBox2.Controls.Add(label7);
             groupBox2.Location = new Point(12, 538);
             groupBox2.Name = "groupBox2";
             groupBox2.Size = new Size(617, 110);
@@ -244,7 +226,7 @@
             // label9
             // 
             label9.AutoSize = true;
-            label9.Location = new Point(1, 48);
+            label9.Location = new Point(416, 0);
             label9.Name = "label9";
             label9.Size = new Size(141, 20);
             label9.TabIndex = 27;
@@ -252,7 +234,7 @@
             // 
             // textBox7
             // 
-            textBox7.Location = new Point(1, 71);
+            textBox7.Location = new Point(416, 18);
             textBox7.Name = "textBox7";
             textBox7.Size = new Size(176, 27);
             textBox7.TabIndex = 26;
@@ -319,11 +301,51 @@
         }
         private void button3_Click(Object sender, EventArgs e)
         {
-            AddOrder();
+            string userId = textBox7.Text.Trim();
+            string finalPlaceText = textBox6.Text.Trim();
+            string input = textBox5.Text.Trim();
+
+            if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(finalPlaceText) || string.IsNullOrWhiteSpace(input))
+            {
+                MessageBox.Show("Пожалуйста, заполните все поля.");
+                return;
+            }
+
+            if (!int.TryParse(finalPlaceText, out int finalPlace))
+            {
+                MessageBox.Show("Неверное значение в поле 'Место'.");
+                return;
+            }
+
+            var items = new List<(Guid, int)>();
+            try
+            {
+                var entries = input.Split(',', StringSplitOptions.RemoveEmptyEntries);
+                foreach (var entry in entries)
+                {
+                    var parts = entry.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    if (parts.Length != 2)
+                        throw new Exception("Неверный формат: " + entry);
+
+                    Guid itemId = Guid.Parse(parts[0]);
+                    int quantity = int.Parse(parts[1]);
+                    items.Add((itemId, quantity));
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Ошибка разбора ввода: " + ex.Message);
+                return;
+            }
+
+            CreateOrder(userId, finalPlace, items);
+            
         }
         private void button4_Click(Object sender, EventArgs e)
         {
-            DeleteOrder();
+            if (dataGridView1.SelectedRows.Count > 0 
+                && dataGridView1.SelectedRows[0].Cells["order_id"].Value.ToString() != "")
+            CancelOrder(dataGridView1.SelectedRows[0].Cells["order_id"].Value.ToString());
 
         }
         private void button1_Click(Object sender, EventArgs e)
@@ -348,8 +370,6 @@
         private Button button5;
         private GroupBox groupBox1;
         private Label label2;
-        private Label label7;
-        private TextBox textBox4;
         private TextBox textBox5;
         private TextBox textBox6;
         private GroupBox groupBox2;
