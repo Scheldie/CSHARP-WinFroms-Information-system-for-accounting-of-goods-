@@ -8,6 +8,7 @@ namespace WinFormsApp1.Forms
         private System.Windows.Forms.Label lblOrderCount;
         private System.Windows.Forms.Label lblTotalSum;
         private System.Windows.Forms.Label lblPopularItem;
+        private System.Windows.Forms.Label lblAVGSum;
         private System.Windows.Forms.TabControl tabControl;
         private System.Windows.Forms.TabPage tabPageDaily;
         private System.Windows.Forms.TabPage tabPageTopItems;
@@ -19,6 +20,8 @@ namespace WinFormsApp1.Forms
         private System.Windows.Forms.DataVisualization.Charting.Chart chartCustomerAcquisition;
         private System.Windows.Forms.ComboBox cmbMonth;
         private System.Windows.Forms.Button btnLoadStats;
+        private System.Windows.Forms.TabPage tabPageOrdersAndRevenue;
+        private System.Windows.Forms.DataVisualization.Charting.Chart chartUnion;
 
         protected override void Dispose(bool disposing)
         {
@@ -50,31 +53,36 @@ namespace WinFormsApp1.Forms
             this.lblOrderCount = new System.Windows.Forms.Label();
             this.lblTotalSum = new System.Windows.Forms.Label();
             this.lblPopularItem = new System.Windows.Forms.Label();
+            this.lblAVGSum = new System.Windows.Forms.Label();
             this.tabControl = new System.Windows.Forms.TabControl();
             this.tabPageDaily = new System.Windows.Forms.TabPage();
             this.tabPageTopItems = new System.Windows.Forms.TabPage();
             this.tabPageMonthlyRevenue = new System.Windows.Forms.TabPage();
             this.tabPageCustomerAcquisition = new System.Windows.Forms.TabPage();
+            this.tabPageOrdersAndRevenue = new System.Windows.Forms.TabPage();
             this.chartDailyStats = new System.Windows.Forms.DataVisualization.Charting.Chart();
             this.chartTopItems = new System.Windows.Forms.DataVisualization.Charting.Chart();
             this.chartMonthlyRevenue = new System.Windows.Forms.DataVisualization.Charting.Chart();
             this.chartCustomerAcquisition = new System.Windows.Forms.DataVisualization.Charting.Chart();
+            this.chartUnion = new System.Windows.Forms.DataVisualization.Charting.Chart();
 
             this.tabControl.SuspendLayout();
             this.tabPageDaily.SuspendLayout();
             this.tabPageTopItems.SuspendLayout();
             this.tabPageMonthlyRevenue.SuspendLayout();
             this.tabPageCustomerAcquisition.SuspendLayout();
+            this.tabPageOrdersAndRevenue.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.chartDailyStats)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.chartTopItems)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.chartMonthlyRevenue)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.chartCustomerAcquisition)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.chartUnion)).BeginInit();
             this.SuspendLayout();
 
             // lblOrderCount
             this.lblOrderCount.AutoSize = true;
             this.lblOrderCount.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
-            this.lblOrderCount.Location = new System.Drawing.Point(30, 20);
+            this.lblOrderCount.Location = new System.Drawing.Point(30, 50);
             this.lblOrderCount.Name = "lblOrderCount";
             this.lblOrderCount.Size = new System.Drawing.Size(160, 23);
             this.lblOrderCount.Text = "Заказов: загрузка...";
@@ -82,7 +90,7 @@ namespace WinFormsApp1.Forms
             // lblTotalSum
             this.lblTotalSum.AutoSize = true;
             this.lblTotalSum.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
-            this.lblTotalSum.Location = new System.Drawing.Point(30, 50);
+            this.lblTotalSum.Location = new System.Drawing.Point(30, 80);
             this.lblTotalSum.Name = "lblTotalSum";
             this.lblTotalSum.Size = new System.Drawing.Size(155, 23);
             this.lblTotalSum.Text = "Сумма: загрузка...";
@@ -90,17 +98,26 @@ namespace WinFormsApp1.Forms
             // lblPopularItem
             this.lblPopularItem.AutoSize = true;
             this.lblPopularItem.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
-            this.lblPopularItem.Location = new System.Drawing.Point(30, 80);
+            this.lblPopularItem.Location = new System.Drawing.Point(30, 110);
             this.lblPopularItem.Name = "lblPopularItem";
             this.lblPopularItem.Size = new System.Drawing.Size(215, 23);
             this.lblPopularItem.Text = "Популярный товар: ...";
+
+            // lblAVGSum
+            this.lblAVGSum.AutoSize = true;
+            this.lblAVGSum.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.lblAVGSum.Location = new System.Drawing.Point(30, 140);
+            this.lblAVGSum.Name = "lblAVGSum";
+            this.lblAVGSum.Size = new System.Drawing.Size(215, 23);
+            this.lblAVGSum.Text = "Средний чек: ...";
 
             // tabControl
             this.tabControl.Controls.Add(this.tabPageDaily);
             this.tabControl.Controls.Add(this.tabPageTopItems);
             this.tabControl.Controls.Add(this.tabPageMonthlyRevenue);
             this.tabControl.Controls.Add(this.tabPageCustomerAcquisition);
-            this.tabControl.Location = new System.Drawing.Point(30, 120);
+            this.tabControl.Controls.Add(this.tabPageOrdersAndRevenue);
+            this.tabControl.Location = new System.Drawing.Point(30, 200);
             this.tabControl.Name = "tabControl";
             this.tabControl.Size = new System.Drawing.Size(800, 500);
             this.tabControl.SelectedIndexChanged += new System.EventHandler(this.tabControl_SelectedIndexChanged);
@@ -141,6 +158,15 @@ namespace WinFormsApp1.Forms
             this.tabPageCustomerAcquisition.Text = "Приобретение клиентов";
             this.tabPageCustomerAcquisition.UseVisualStyleBackColor = true;
 
+            // tabPageOrdersAndRevenue
+            this.tabPageOrdersAndRevenue.Controls.Add(this.chartUnion);
+            this.tabPageOrdersAndRevenue.Location = new System.Drawing.Point(4, 29);
+            this.tabPageOrdersAndRevenue.Name = "tabPageOrdersAndRevenue";
+            this.tabPageOrdersAndRevenue.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPageOrdersAndRevenue.Size = new System.Drawing.Size(792, 467);
+            this.tabPageOrdersAndRevenue.Text = "Заказы и выручка";
+            this.tabPageOrdersAndRevenue.UseVisualStyleBackColor = true;
+
             // chartDailyStats
             this.chartDailyStats.Dock = System.Windows.Forms.DockStyle.Fill;
             this.chartDailyStats.Location = new System.Drawing.Point(3, 3);
@@ -177,6 +203,15 @@ namespace WinFormsApp1.Forms
             this.chartCustomerAcquisition.Text = "chartCustomerAcquisition";
             this.chartCustomerAcquisition.ChartAreas.Add(new ChartArea());
 
+            // chartUnion
+            this.chartUnion.Location = new System.Drawing.Point(3, 3);
+            this.chartUnion.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.chartUnion.Name = "chartUnion";
+            this.chartUnion.TabIndex = 4;
+            this.chartUnion.Text = "chartUnion";
+            this.chartUnion.ChartAreas.Add(new ChartArea("MainArea"));
+            this.chartUnion.Size = new System.Drawing.Size(786, 461);
+
             // OrderStatistics
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -184,6 +219,7 @@ namespace WinFormsApp1.Forms
             this.Controls.Add(this.lblPopularItem);
             this.Controls.Add(this.lblTotalSum);
             this.Controls.Add(this.lblOrderCount);
+            this.Controls.Add(this.lblAVGSum);
             this.Controls.Add(this.tabControl);
             this.Name = "OrderStatistics";
             this.Text = "Статистика заказов";
@@ -193,10 +229,12 @@ namespace WinFormsApp1.Forms
             this.tabPageTopItems.ResumeLayout(false);
             this.tabPageMonthlyRevenue.ResumeLayout(false);
             this.tabPageCustomerAcquisition.ResumeLayout(false);
+            this.tabPageOrdersAndRevenue.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.chartDailyStats)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.chartTopItems)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.chartMonthlyRevenue)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.chartCustomerAcquisition)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.chartUnion)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
         }

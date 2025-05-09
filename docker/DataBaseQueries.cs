@@ -116,7 +116,7 @@ namespace WinFormsApp1.docker
                 var command = new NpgsqlCommand(query, conn);
                 try
                 {
-                    using (var cmd = new NpgsqlCommand(String.Format("SELECT * FROM {0}", TableName), conn))
+                    
                     using (var reader = command.ExecuteReader())
                     {
                         DataTable dataTable = new DataTable();

@@ -25,6 +25,7 @@ namespace WinFormsApp1.Forms
             LoadTopItemsChart();
             LoadMonthlyRevenueChart();
             LoadCustomerAcquisitionChart();
+            LoadOrdersAndRevenueChart();
 
         }
 
@@ -97,8 +98,82 @@ namespace WinFormsApp1.Forms
                 {
                     reader2.Close();
                 }
-
+                // Популярный товар
+                NpgsqlCommand cmd4 = new NpgsqlCommand(@"
+                    SELECT AVG(final_cost) AS average_order_cost
+                    FROM orders
+                    WHERE EXTRACT(MONTH FROM date) = @month
+                    AND EXTRACT(YEAR FROM date) = EXTRACT(YEAR FROM current_date)", conn);
+                cmd4.Parameters.AddWithValue("@month", selectedMonth);
+                NpgsqlDataReader reader4 = cmd4.ExecuteReader();
+                if (reader4.Read())
+                {
+                    lblAVGSum.Text = "Средняя сумма заказа: " + Math.Round(Double.Parse(reader4["average_order_cost"].ToString()), 2) + " руб.";
+                    
+                }
+                reader4.Close();
             }
+        }
+        private void LoadOrdersAndRevenueChart()
+        {
+            chartUnion.Series.Clear();
+            chartUnion.ChartAreas[0].AxisX.Title = "Месяц";
+            chartUnion.ChartAreas[0].AxisY.Title = "Количество заказов / Выручка";
+            chartUnion.ChartAreas[0].AxisX.Interval = 1;
+
+            var ordersSeries = new Series("Заказы")
+            {
+                ChartType = SeriesChartType.Column,
+                Color = Color.SteelBlue,
+                IsValueShownAsLabel = true
+            };
+
+            var revenueSeries = new Series("Выручка")
+            {
+                ChartType = SeriesChartType.Line,
+                BorderWidth = 3,
+                Color = Color.OrangeRed,
+                IsValueShownAsLabel = true,
+                YAxisType = AxisType.Secondary
+            };
+
+            using var conn = new NpgsqlConnection(DataBaseConnection.ConnectionString);
+            conn.Open();
+
+            string sql = @"
+                SELECT EXTRACT(MONTH FROM date) AS month, COUNT(*)::float AS value, 'Заказы' AS type
+                FROM orders
+                WHERE EXTRACT(YEAR FROM date) = EXTRACT(YEAR FROM CURRENT_DATE)
+                GROUP BY month
+
+                UNION
+
+                SELECT EXTRACT(MONTH FROM date), SUM(final_cost), 'Выручка'
+                FROM orders
+                WHERE EXTRACT(YEAR FROM date) = EXTRACT(YEAR FROM CURRENT_DATE)
+                GROUP BY EXTRACT(MONTH FROM date)
+                ORDER BY month;";
+
+            using var cmd = new NpgsqlCommand(sql, conn);
+            using var reader = cmd.ExecuteReader();
+
+            var monthLabels = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.MonthNames;
+
+            while (reader.Read())
+            {
+                int month = Convert.ToInt32(reader["month"]);
+                double value = Convert.ToDouble(reader["value"]);
+                string type = reader["type"].ToString();
+                string label = monthLabels[month - 1];
+
+                if (type == "Заказы")
+                    ordersSeries.Points.AddXY(label, value);
+                else if (type == "Выручка")
+                    revenueSeries.Points.AddXY(label, value);
+            }
+
+            chartUnion.Series.Add(ordersSeries);
+            chartUnion.Series.Add(revenueSeries);
         }
 
         private void LoadDailyCharts()
@@ -324,6 +399,11 @@ namespace WinFormsApp1.Forms
             {
                 LoadCustomerAcquisitionChart();
             }
+            else if (tabControl.SelectedTab == tabPageOrdersAndRevenue)
+            {
+                LoadOrdersAndRevenueChart();
+            }
+
         }
         private void Statistics_Load(object sender, EventArgs e)
         {

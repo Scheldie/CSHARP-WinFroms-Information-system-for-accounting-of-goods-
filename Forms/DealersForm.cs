@@ -119,9 +119,9 @@ namespace WinFormsApp1.Forms
                 try
                 {
                     // Открываем соединение
-                    using (var cmd = new NpgsqlCommand(String.Format(
+                    using (var cmd = new NpgsqlCommand(
                         "INSERT INTO dealer (rate, dealer_name, url) VALUES (@rate ,@dealer_name, @url)",
-                        conn)))
+                        conn))
                     {
                         cmd.Parameters.AddWithValue("@rate", rate);
                         cmd.Parameters.AddWithValue("@dealer_name", Name);

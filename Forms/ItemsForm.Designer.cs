@@ -56,6 +56,7 @@ namespace WinFormsApp1.Forms
             groupBox2 = new GroupBox();
             label10 = new Label();
             textBox7 = new TextBox();
+            checkBox1 = new CheckBox();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
@@ -300,11 +301,23 @@ namespace WinFormsApp1.Forms
             textBox7.Size = new Size(176, 27);
             textBox7.TabIndex = 20;
             // 
+            // checkBox1
+            // 
+            checkBox1.AutoSize = true;
+            checkBox1.Location = new Point(706, 12);
+            checkBox1.Name = "checkBox1";
+            checkBox1.Size = new Size(293, 24);
+            checkBox1.TabIndex = 25;
+            checkBox1.Text = "Не заказывали в последние 3 месяца";
+            checkBox1.UseVisualStyleBackColor = true;
+            checkBox1.CheckedChanged += checkBox1_CheckedChanged;
+            // 
             // ItemsForm
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1000, 660);
+            Controls.Add(checkBox1);
             Controls.Add(groupBox2);
             Controls.Add(groupBox1);
             Controls.Add(dataGridView1);
@@ -407,5 +420,6 @@ namespace WinFormsApp1.Forms
         private GroupBox groupBox2;
         private Label label10;
         private TextBox textBox7;
+        private CheckBox checkBox1;
     }
 }

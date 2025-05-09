@@ -226,5 +226,50 @@ namespace WinFormsApp1.Forms
         {
 
         }
+
+        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        {
+            if (checkBox1.Checked)
+            {
+                string query = @"SELECT *
+                FROM item
+                WHERE item_id NOT IN (
+                    SELECT DISTINCT item_id
+                    FROM ordered_item oi
+                    JOIN orders AS o ON o.order_id = oi.order_id
+                    WHERE o.date >= CURRENT_DATE - INTERVAL '3 months'
+                );";
+
+                using (var conn = new NpgsqlConnection(DataBaseConnection.ConnectionString))
+                {
+                    conn.Open();
+                    var command = new NpgsqlCommand(query, conn);
+                    try
+                    {
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            DataTable dataTable = new DataTable();
+                            dataTable.Load(reader);
+                            DataColumn indexColumn = new DataColumn("Index", typeof(int));
+                            dataTable.Columns.Add(indexColumn);
+                            int index = 1;
+                            foreach (DataRow row in dataTable.Rows)
+                            {
+                                row["Index"] = index++;
+                            }
+                            dataGridView1.DataSource = dataTable;
+                            dataGridView1.Columns["Index"].DisplayIndex = 0;
+                        }
+
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Ошибка: " + ex.Message);
+                    }
+                }
+            }
+            else LoadData();
+        }
     }
 }
