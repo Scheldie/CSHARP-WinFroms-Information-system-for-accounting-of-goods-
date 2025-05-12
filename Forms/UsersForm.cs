@@ -65,8 +65,36 @@ namespace WinFormsApp1.Forms
         }
         private void LoadData()
         {
-            DataBaseQueries dbQuery = new DataBaseQueries(this, this, new User(), dataGridView1);
-            dbQuery.LoadData();
+            string query = String.Format("SELECT * FROM select_users");
+
+            using (var conn = new NpgsqlConnection(DataBaseConnection.ConnectionString))
+            {
+                conn.Open();
+                var command = new NpgsqlCommand(query, conn);
+                try
+                {
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        DataTable dataTable = new DataTable();
+                        dataTable.Load(reader);
+                        DataColumn indexColumn = new DataColumn("Index", typeof(int));
+                        dataTable.Columns.Add(indexColumn);
+                        int index = 1;
+                        foreach (DataRow row in dataTable.Rows)
+                        {
+                            row["Index"] = index++;
+                        }
+                        dataGridView1.DataSource = dataTable;
+                        dataGridView1.Columns["Index"].DisplayIndex = 0;
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Ошибка: " + ex.Message);
+                }
+            }
         }
         private void LoadFiltredData()
         {
@@ -77,7 +105,7 @@ namespace WinFormsApp1.Forms
                 conn.Open();
                 try
                 {
-                    using (var cmd = new NpgsqlCommand("SELECT * FROM users WHERE phone_number = @phone_number", conn))
+                    using (var cmd = new NpgsqlCommand("SELECT * FROM select_users WHERE phone_number = @phone_number", conn))
                     {
                         cmd.Parameters.AddWithValue("@phone_number", LoginForm.ComputeSha256Hash(textBox1.Text+salt));
                         using (var reader = cmd.ExecuteReader())
